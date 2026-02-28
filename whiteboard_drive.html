@@ -1,0 +1,2690 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Whiteboard — 양영학원</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+/* ===== CSS VARIABLES ===== */
+:root {
+  --purple: #7c3aed; --blue: #2563eb; --green: #059669;
+  --amber: #d97706; --rose: #e11d48; --cyan: #0891b2;
+  --text-primary: #0f172a; --text-secondary: #475569; --text-muted: #94a3b8;
+  --surface: #ffffff; --surface-soft: #f8fafc; --surface-muted: #f1f5f9;
+  --border: #e2e8f0;
+  --slide-bg: #ffffff; --slide-text: #0f172a; --slide-text-secondary: #475569;
+  --toolbar-bg: rgba(15, 23, 42, 0.95); --toolbar-text: #e2e8f0;
+  --toolbar-active: #7c3aed; --toolbar-hover: rgba(255,255,255,0.1);
+  --toolbar-height: 56px; --status-height: 28px; --panel-width: 340px;
+  --touch-target: 56px;
+}
+
+/* ===== THEMES ===== */
+.theme-white { --slide-bg: #ffffff; --slide-text: #0f172a; --slide-text-secondary: #475569; }
+.theme-grid {
+  --slide-bg: #ffffff; --slide-text: #0f172a; --slide-text-secondary: #475569;
+}
+.theme-grid #slide-container {
+  background-image: linear-gradient(#e8e8e8 1px, transparent 1px), linear-gradient(90deg, #e8e8e8 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.theme-lined {
+  --slide-bg: #fffef5; --slide-text: #1a1a2e; --slide-text-secondary: #555;
+}
+.theme-lined #slide-container {
+  background-image: repeating-linear-gradient(transparent, transparent 39px, #c9bda3 39px, #c9bda3 40px);
+}
+.theme-dark {
+  --slide-bg: #000000; --slide-text: #e0e0e0; --slide-text-secondary: #9e9eb8;
+  --border: #2a2a40; --surface: #0a0a12; --surface-soft: #0e0e18; --surface-muted: #141420;
+  --text-primary: #e0e0e0; --text-secondary: #8888a0; --text-muted: #555570;
+  --purple: #a78bfa;
+}
+.theme-dark .slide-card { background: rgba(255,255,255,0.04); border-color: #2a2a40; }
+.theme-dark .q-option { background: rgba(255,255,255,0.04); border-color: #2a2a40; color: var(--slide-text); }
+.theme-dark .q-option:hover { background: rgba(255,255,255,0.08); border-color: #5b5b80; }
+.theme-dark .q-option .q-label { color: #a78bfa; }
+.theme-dark .q-explanation { background: rgba(255,191,0,0.08); border-left-color: #d97706; color: #fbbf24; }
+.theme-dark .grammar-point { background: rgba(255,255,255,0.03); border-color: #2a2a40; }
+.theme-dark .grammar-point .example { background: rgba(167,139,250,0.06); }
+.theme-dark .ks-block { background: rgba(255,255,255,0.03); border-left-color: #a78bfa; }
+.theme-dark .ks-note { background: rgba(167,139,250,0.15); color: #c4b5fd; }
+.theme-dark .reveal-label { background: rgba(167,139,250,0.15); border-color: #5b21b6; color: #c4b5fd; }
+.theme-dark .vocab-badge { background: rgba(255,255,255,0.06); border-color: #2a2a40; color: #9e9eb8; }
+.theme-dark .vocab-badge b { color: #e0e0e0; }
+.theme-dark .passage-notes { background: #0a0a12; border-left: 1px solid #2a2a40; }
+.theme-dark .passage-notes-header { border-bottom-color: #2a2a40; color: #a78bfa; }
+.theme-dark .passage-notes-body textarea { color: #d0d0e0; }
+.theme-dark .passage-notes-body textarea::placeholder { color: #555570; }
+.theme-dark .passage-resize-handle { background: #2a2a40; }
+.theme-dark .passage-resize-handle:hover, .theme-dark .passage-resize-handle.dragging { background: #a78bfa; }
+.theme-dark .passage-left::-webkit-scrollbar-thumb { background: #333355; }
+.theme-dark .passage-notes-body textarea::-webkit-scrollbar-thumb { background: #333355; }
+.theme-dark .slide-header { color: #a78bfa; }
+.theme-dark .freeform-content th { border-color: #a78bfa; }
+.theme-dark .freeform-content td { border-bottom-color: #2a2a40; }
+.theme-dark .reveal-target.text-hl {
+  background: linear-gradient(transparent 65%, rgba(250,204,21,0.3) 65%);
+}
+.theme-dark .nav-zone svg { fill: rgba(255,255,255,0.12); }
+.theme-dark #side-panel { background: #0a0a12; border-left-color: #2a2a40; }
+.theme-dark .panel-header { border-bottom-color: #2a2a40; color: var(--slide-text); }
+.theme-dark .panel-close { color: #9e9eb8; }
+.theme-dark .panel-close:hover { background: #141420; }
+.theme-dark .panel-section-title { color: #a78bfa; border-bottom-color: #2a2a40; }
+.theme-dark .panel-vocab-item { border-bottom-color: #141420; color: #9e9eb8; }
+.theme-dark .panel-vocab-word { color: #e0e0e0; }
+.theme-sepia { --slide-bg: #f5f0e3; --slide-text: #3d3222; --slide-text-secondary: #6b5d4a; }
+
+/* ===== APP CONTAINER ===== */
+#app-container {
+  width: 100vw; height: 100vh; display: flex; flex-direction: column;
+  background: var(--slide-bg); color: var(--slide-text);
+  transition: background 0.3s, color 0.3s; position: relative; overflow: hidden;
+}
+
+/* ===== TOOLBAR ===== */
+#toolbar {
+  height: var(--toolbar-height); background: var(--toolbar-bg); color: var(--toolbar-text);
+  display: flex; align-items: center; gap: 4px; padding: 0 12px;
+  z-index: 100; flex-shrink: 0; transition: transform 0.3s ease, opacity 0.3s ease;
+  user-select: none; -webkit-user-select: none;
+}
+#toolbar.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+.tool-group { display: flex; align-items: center; gap: 2px; }
+.tool-sep { width: 1px; height: 32px; background: rgba(255,255,255,0.15); margin: 0 6px; }
+.tool-sep-wide { width: 1px; height: 32px; background: rgba(255,255,255,0.25); margin: 0 10px; }
+.tool-btn {
+  min-width: var(--touch-target); height: var(--touch-target);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: none; border: none; color: var(--toolbar-text); cursor: pointer;
+  border-radius: 8px; font-size: 13px; font-weight: 500; padding: 0 10px;
+  transition: background 0.15s; position: relative; white-space: nowrap;
+}
+.tool-btn:hover { background: var(--toolbar-hover); }
+.tool-btn.active { background: rgba(124,58,237,0.25); color: #c4b5fd; }
+.tool-btn.active::after {
+  content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  width: 20px; height: 3px; background: var(--toolbar-active); border-radius: 2px;
+}
+.tool-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+.color-dot {
+  width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.color-dot:hover { transform: scale(1.15); }
+.color-dot.active { border-color: #fff; transform: scale(1.2); }
+.width-btn {
+  width: 40px; height: var(--touch-target); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; border: none; background: none;
+  border-radius: 8px; transition: background 0.15s;
+}
+.width-btn:hover { background: var(--toolbar-hover); }
+.width-btn.active { background: rgba(124,58,237,0.25); }
+.width-line { background: #e2e8f0; border-radius: 4px; }
+#slide-counter {
+  font-size: 14px; font-weight: 600; min-width: 60px; text-align: center;
+  color: #e2e8f0; letter-spacing: 1px;
+}
+#lesson-nav-wrap { position: relative; margin-left: auto; }
+#lesson-title-bar {
+  font-size: 12px; color: #94a3b8; max-width: 240px; background: none; border: 1px solid transparent;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;
+  padding: 4px 10px; border-radius: 6px; font-family: inherit; transition: all 0.15s;
+}
+#lesson-title-bar:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
+#lesson-title-bar::after { content: ' ▾'; font-size: 10px; opacity: 0.5; }
+.lnav-dropdown {
+  display: none; position: absolute; right: 0; top: 100%; margin-top: 6px;
+  background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+  min-width: 280px; max-height: 420px; overflow-y: auto; z-index: 3000;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5); padding: 6px;
+}
+.lnav-dropdown.open { display: block; }
+.lnav-group-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #64748b;
+  padding: 8px 12px 4px; font-weight: 700;
+}
+.lnav-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px;
+  cursor: pointer; color: #cbd5e1; font-size: 13px; transition: background 0.1s;
+}
+.lnav-item:hover { background: rgba(124,58,237,0.15); color: #e2e8f0; }
+.lnav-item.active { background: rgba(124,58,237,0.2); color: #a78bfa; font-weight: 600; }
+.lnav-item .lnav-slides { font-size: 11px; color: #64748b; margin-left: auto; }
+.lnav-empty { padding: 20px; text-align: center; color: #64748b; font-size: 13px; }
+.lnav-footer { border-top: 1px solid #334155; padding: 6px; margin-top: 4px; }
+.lnav-footer button {
+  width: 100%; padding: 8px; border: none; border-radius: 6px; cursor: pointer;
+  background: rgba(124,58,237,0.15); color: #a78bfa; font-size: 13px; font-family: inherit;
+}
+.lnav-footer button:hover { background: rgba(124,58,237,0.25); }
+
+/* ===== SLIDE CONTAINER ===== */
+#slide-container {
+  flex: 1; position: relative; overflow: hidden;
+  background-color: var(--slide-bg); transition: background-color 0.3s;
+}
+#slide-track {
+  display: flex; height: 100%; transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.slide {
+  min-width: 100%; height: 100%; padding: 40px 60px; overflow-y: auto;
+  display: flex; flex-direction: column;
+  scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
+}
+.slide::-webkit-scrollbar { width: 6px; }
+.slide::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* ===== SLIDE TYPE STYLES ===== */
+/* Title */
+.slide-title-page {
+  justify-content: center; align-items: center; text-align: center; gap: 16px;
+}
+.slide-title-page h1 { font-size: 2.8em; font-weight: 800; letter-spacing: -1px; line-height: 1.2; }
+.slide-title-page .subtitle {
+  font-size: 1.3em; color: var(--slide-text-secondary); font-weight: 400;
+}
+.slide-title-page .accent-line {
+  width: 80px; height: 4px; background: var(--purple); border-radius: 2px; margin: 8px 0;
+}
+
+/* Passage */
+.slide-header { font-size: 0.75em; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+/* Passage split layout */
+.passage-split { display: flex; flex: 1; gap: 0; min-height: 0; overflow: hidden; }
+.passage-left { flex: 1; overflow-y: auto; padding-right: 12px; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+.passage-left::-webkit-scrollbar { width: 6px; }
+.passage-left::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.passage-resize-handle {
+  width: 6px; cursor: col-resize; background: var(--border); border-radius: 3px;
+  flex-shrink: 0; transition: background 0.2s;
+}
+.passage-resize-handle:hover, .passage-resize-handle.dragging { background: var(--purple); }
+.passage-notes {
+  width: 340px; min-width: 180px; max-width: 60%; display: flex; flex-direction: column;
+  background: var(--surface-soft); border-radius: 8px; overflow: hidden; flex-shrink: 0;
+}
+.passage-notes-header {
+  padding: 8px 14px; font-size: 0.65em; font-weight: 700; color: var(--purple);
+  text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.passage-notes-body {
+  flex: 1; padding: 0; overflow: hidden; display: flex;
+}
+.passage-notes-body textarea {
+  flex: 1; border: none; outline: none; resize: none; padding: 12px 14px;
+  font-family: inherit; font-size: 0.82em; line-height: 1.7; color: var(--slide-text);
+  background: transparent; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
+}
+.passage-notes-body textarea::-webkit-scrollbar { width: 5px; }
+.passage-notes-body textarea::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.passage-notes-body textarea::placeholder { color: #94a3b8; }
+.passage-text { font-size: 1.15em; line-height: 2; word-spacing: 1px; }
+.reveal-target {
+  position: relative; filter: blur(6px); user-select: none; cursor: default;
+  transition: filter 0.5s ease, background 0.5s ease; padding: 2px 0; border-radius: 2px;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.reveal-target.revealed {
+  filter: none; user-select: auto;
+}
+.reveal-target.text-hl {
+  background: linear-gradient(transparent 65%, rgba(254,240,138,0.6) 65%);
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  background-attachment: scroll;
+}
+.reveal-label {
+  position: absolute; top: -22px; left: 0; font-size: 11px; font-weight: 700;
+  color: var(--purple); background: #f5f3ff; padding: 1px 8px; border-radius: 4px;
+  border: 1px solid #ddd6fe; white-space: nowrap; opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.reveal-target.revealed .reveal-label { opacity: 1; }
+
+/* Sentence click-to-underline */
+.sentence { cursor: pointer; transition: border-bottom 0.2s ease, background 0.2s ease; border-bottom: 2px solid transparent; }
+.sentence:hover { border-bottom-color: rgba(124,58,237,0.3); }
+.sentence.sentence-active { border-bottom: 3px solid var(--purple); }
+
+/* Vocabulary badge row */
+.vocab-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.vocab-badge {
+  background: var(--surface-soft); border: 1px solid var(--border); border-radius: 20px;
+  padding: 4px 14px; font-size: 0.72em; color: var(--slide-text-secondary);
+}
+.vocab-badge b { color: var(--slide-text); margin-right: 4px; }
+
+/* Questions */
+.question-block { margin-bottom: 32px; max-width: 1000px; }
+.question-block .q-num { font-weight: 800; color: var(--purple); font-size: 0.85em; margin-bottom: 6px; }
+.question-block .q-text { font-size: 1.1em; font-weight: 600; margin-bottom: 12px; line-height: 1.6; }
+.q-options { display: flex; flex-direction: column; gap: 6px; }
+.q-option {
+  padding: 10px 16px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 0.95em; cursor: pointer; transition: all 0.2s; display: flex; align-items: baseline; gap: 10px;
+  background: var(--surface-soft);
+}
+.q-option:hover { border-color: var(--purple); background: #f5f3ff; }
+.q-option .q-label { font-weight: 700; color: var(--purple); min-width: 20px; }
+.q-option.correct { border-color: var(--green); background: #ecfdf5; }
+.q-option.correct .q-label { color: var(--green); }
+.q-explanation {
+  margin-top: 10px; padding: 12px 16px; background: #fffbeb; border-left: 3px solid var(--amber);
+  border-radius: 0 8px 8px 0; font-size: 0.85em; color: #92400e; display: none;
+}
+.q-explanation.shown { display: block; }
+
+/* Grammar */
+.grammar-point {
+  margin-bottom: 24px; padding: 20px; border-radius: 12px;
+  background: var(--surface-soft); border: 1px solid var(--border); max-width: 1000px;
+}
+.grammar-point .rule { font-weight: 700; font-size: 1.05em; margin-bottom: 8px; color: var(--purple); }
+.grammar-point .example {
+  font-size: 1em; line-height: 1.8; padding: 8px 12px; background: rgba(124,58,237,0.04);
+  border-radius: 6px; font-family: 'Georgia', serif; letter-spacing: 0.3px;
+}
+.grammar-point .example .hl { color: var(--rose); font-weight: 700; text-decoration: underline; text-decoration-color: rgba(225,29,72,0.3); }
+
+/* Key Sentence */
+.ks-block {
+  margin-bottom: 28px; padding: 24px; border-radius: 12px;
+  border-left: 4px solid var(--purple); background: var(--surface-soft); max-width: 1000px;
+}
+.ks-en { font-size: 1.15em; line-height: 1.8; font-weight: 500; margin-bottom: 8px; font-family: 'Georgia', serif; }
+.ks-ko { font-size: 0.9em; color: var(--slide-text-secondary); line-height: 1.6; }
+.ks-note {
+  margin-top: 8px; font-size: 0.78em; color: var(--purple); font-weight: 600;
+  background: #f5f3ff; display: inline-block; padding: 2px 10px; border-radius: 12px;
+}
+
+/* Freeform */
+.freeform-content { max-width: 1100px; line-height: 1.8; }
+.freeform-content table { border-collapse: collapse; width: 100%; }
+.freeform-content th, .freeform-content td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: left; }
+.freeform-content th { border-bottom-width: 2px; border-color: var(--purple); }
+
+/* Image */
+.slide-image { max-width: 100%; max-height: calc(100% - 80px); object-fit: contain; border-radius: 8px; margin: 0 auto; display: block; }
+.image-caption { text-align: center; font-size: 0.8em; color: var(--slide-text-secondary); margin-top: 12px; }
+
+/* Blank */
+.slide-blank { justify-content: center; align-items: center; }
+.slide-blank::after {
+  content: '자유 필기 화면'; font-size: 0.8em; color: var(--text-muted); opacity: 0.4;
+  position: absolute; bottom: 60px; pointer-events: none;
+}
+
+/* Slide card (reusable container) */
+.slide-card {
+  background: var(--surface-soft); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; transition: background 0.3s, border-color 0.3s;
+}
+
+/* ===== DRAWING CANVAS ===== */
+#drawing-canvas {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 10; touch-action: none; cursor: crosshair;
+}
+#drawing-canvas.mode-navigate { pointer-events: none; cursor: default; }
+#drawing-canvas.mode-eraser { cursor: cell; }
+
+/* ===== NAV TOUCH ZONES ===== */
+.nav-zone {
+  position: absolute; top: 0; width: 12%; height: 100%; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 0; transition: opacity 0.2s;
+}
+.nav-zone:hover { opacity: 1; }
+.nav-zone svg { width: 48px; height: 48px; fill: rgba(0,0,0,0.15); }
+#nav-prev { left: 0; }
+#nav-next { right: 0; }
+
+/* ===== SIDE PANEL ===== */
+#side-panel {
+  position: absolute; top: 0; right: 0; width: var(--panel-width); height: 100%;
+  background: var(--surface); border-left: 1px solid var(--border);
+  z-index: 50; transform: translateX(100%); transition: transform 0.3s ease;
+  display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+}
+#side-panel.open { transform: translateX(0); }
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 700;
+  font-size: 15px; flex-shrink: 0;
+}
+.panel-close {
+  width: 36px; height: 36px; border: none; background: none; cursor: pointer;
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary); font-size: 20px;
+}
+.panel-close:hover { background: var(--surface-muted); }
+.panel-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.panel-section { margin-bottom: 24px; }
+.panel-section-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--purple); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.panel-vocab-item { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; border-bottom: 1px solid var(--surface-muted); }
+.panel-vocab-word { font-weight: 600; }
+.panel-vocab-meaning { color: var(--text-secondary); }
+
+/* ===== STATUS BAR ===== */
+#status-bar {
+  height: var(--status-height); background: var(--toolbar-bg); color: var(--text-muted);
+  display: flex; align-items: center; padding: 0 16px; gap: 16px;
+  font-size: 12px; z-index: 100; flex-shrink: 0; user-select: none;
+}
+#status-bar span { white-space: nowrap; }
+
+/* ===== BLACKOUT ===== */
+#blackout {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: #000; z-index: 200; display: none; cursor: pointer;
+}
+#blackout.active { display: flex; align-items: center; justify-content: center; }
+#blackout span { color: #333; font-size: 14px; }
+
+/* ===== LESSON MANAGER MODAL ===== */
+#lesson-modal {
+  position: fixed; inset: 0; z-index: 300; display: none;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+}
+#lesson-modal.open { display: flex; }
+.lm-dialog {
+  background: var(--surface, #fff); color: var(--slide-text, #0f172a);
+  border-radius: 16px; width: 720px; max-width: 92vw; max-height: 88vh;
+  display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.lm-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-bottom: 1px solid var(--border, #e2e8f0);
+  font-weight: 800; font-size: 16px;
+}
+.lm-close {
+  width: 36px; height: 36px; border: none; background: none; cursor: pointer;
+  border-radius: 8px; font-size: 22px; color: var(--text-secondary, #475569);
+  display: flex; align-items: center; justify-content: center;
+}
+.lm-close:hover { background: var(--surface-muted, #f1f5f9); }
+.lm-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.lm-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+.lm-tab {
+  padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 600; background: var(--surface-muted, #f1f5f9);
+  color: var(--text-secondary, #475569); transition: all 0.15s;
+}
+.lm-tab.active { background: var(--purple, #7c3aed); color: #fff; }
+.lm-tab:hover:not(.active) { background: var(--border, #e2e8f0); }
+.lm-section { display: none; }
+.lm-section.active { display: block; }
+.lm-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--purple, #7c3aed); margin-bottom: 8px;
+}
+.lm-textarea {
+  width: 100%; height: 280px; border: 1.5px solid var(--border, #e2e8f0); border-radius: 10px;
+  padding: 14px; font-family: 'SF Mono', 'Consolas', monospace; font-size: 12.5px;
+  line-height: 1.6; resize: vertical; background: var(--surface-soft, #f8fafc);
+  color: var(--slide-text, #0f172a); outline: none; tab-size: 2;
+}
+.lm-textarea:focus { border-color: var(--purple, #7c3aed); }
+.lm-hint { font-size: 11.5px; color: var(--text-muted, #94a3b8); margin-top: 8px; line-height: 1.5; }
+.lm-actions { display: flex; gap: 8px; margin-top: 16px; }
+.lm-btn {
+  padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 700; transition: all 0.15s;
+}
+.lm-btn-primary { background: var(--purple, #7c3aed); color: #fff; }
+.lm-btn-primary:hover { filter: brightness(1.15); }
+.lm-btn-danger { background: #fee2e2; color: #dc2626; }
+.lm-btn-danger:hover { background: #fecaca; }
+.lm-btn-secondary { background: var(--surface-muted, #f1f5f9); color: var(--text-secondary, #475569); }
+.lm-btn-secondary:hover { background: var(--border, #e2e8f0); }
+.lm-list { list-style: none; }
+.lm-list li {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px; margin-bottom: 4px; transition: background 0.15s;
+}
+.lm-list li:hover { background: var(--surface-soft, #f8fafc); }
+.lm-list-info { flex: 1; cursor: pointer; }
+.lm-list-title { font-weight: 700; font-size: 14px; }
+.lm-list-meta { font-size: 11px; color: var(--text-muted, #94a3b8); margin-top: 2px; }
+.lm-list-actions { display: flex; gap: 4px; }
+.lm-list-btn {
+  width: 32px; height: 32px; border: none; border-radius: 6px; cursor: pointer;
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--text-muted, #94a3b8); transition: all 0.15s;
+}
+.lm-list-btn:hover { background: var(--surface-muted, #f1f5f9); color: var(--text-primary, #0f172a); }
+.lm-list-btn.delete:hover { background: #fee2e2; color: #dc2626; }
+.lm-empty { text-align: center; padding: 40px 20px; color: var(--text-muted, #94a3b8); font-size: 14px; }
+.lm-toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: #065f46; color: #ecfdf5; padding: 10px 24px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; z-index: 350; opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.lm-toast.show { opacity: 1; }
+.theme-dark .lm-dialog { background: #0e0e18; }
+.theme-dark .lm-textarea { background: #0a0a12; border-color: #2a2a40; color: #d0d0e0; }
+.theme-dark .lm-textarea:focus { border-color: #a78bfa; }
+.theme-dark .lm-close:hover { background: #141420; }
+.theme-dark .lm-tab { background: #141420; color: #9e9eb8; }
+.theme-dark .lm-tab:hover:not(.active) { background: #1a1a2e; }
+.theme-dark .lm-btn-secondary { background: #141420; color: #9e9eb8; }
+.theme-dark .lm-btn-danger { background: rgba(220,38,38,0.15); }
+.theme-dark .lm-list li:hover { background: #141420; }
+.theme-dark .lm-list-btn:hover { background: #1a1a2e; color: #e0e0e0; }
+
+/* ===== MISC ===== */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+@media (max-width: 800px) {
+  .slide { padding: 24px 20px; }
+  #toolbar { padding: 0 6px; gap: 2px; }
+  .tool-btn { min-width: 44px; height: 44px; padding: 0 6px; font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<div id="app-container" class="theme-white">
+  <!-- TOOLBAR -->
+  <div id="toolbar">
+    <!-- Drawing tools -->
+    <div class="tool-group">
+      <button class="tool-btn active" data-tool="navigate" title="포인터 (Esc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="pen" title="펜">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="highlighter" title="형광펜">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="eraser" title="지우개">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="clear" title="전체 삭제">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      </button>
+    </div>
+    <div class="tool-sep"></div>
+    <!-- Colors -->
+    <div class="tool-group" id="color-group">
+      <div class="color-dot active" data-color="#e11d48" style="background:#e11d48" title="빨강"></div>
+      <div class="color-dot" data-color="#2563eb" style="background:#2563eb" title="파랑"></div>
+      <div class="color-dot" data-color="#059669" style="background:#059669" title="초록"></div>
+      <div class="color-dot" data-color="#0f172a" style="background:#0f172a" title="검정"></div>
+      <div class="color-dot" data-color="#eab308" style="background:#eab308" title="노랑"></div>
+    </div>
+    <div class="tool-sep"></div>
+    <!-- Pen width -->
+    <div class="tool-group" id="width-group">
+      <button class="width-btn" data-width="2" title="얇게"><div class="width-line" style="width:16px;height:2px"></div></button>
+      <button class="width-btn active" data-width="4" title="보통"><div class="width-line" style="width:16px;height:4px"></div></button>
+      <button class="width-btn" data-width="8" title="굵게"><div class="width-line" style="width:16px;height:8px"></div></button>
+    </div>
+    <div class="tool-sep-wide"></div>
+    <!-- Navigation -->
+    <div class="tool-group">
+      <button class="tool-btn" id="btn-prev" title="이전 (←)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <span id="slide-counter">1 / 1</span>
+      <button class="tool-btn" id="btn-next" title="다음 (→)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+    <div class="tool-sep-wide"></div>
+    <!-- View controls -->
+    <div class="tool-group">
+      <button class="tool-btn" id="btn-font-up" title="글꼴 크게 (+)">A+</button>
+      <button class="tool-btn" id="btn-font-down" title="글꼴 작게 (-)">A-</button>
+      <button class="tool-btn" id="btn-bg" title="배경 전환 (B)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
+      </button>
+      <button class="tool-btn" id="btn-reveal" title="Reveal (R)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <button class="tool-btn" id="btn-reveal-middle" title="중간 공개" style="font-weight:800;color:#fbbf24;font-size:14px">2-F</button>
+      <button class="tool-btn" id="btn-panel" title="자료 패널">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg>
+      </button>
+      <button class="tool-btn" id="btn-fullscreen" title="전체화면 (F11)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
+      <button class="tool-btn" id="btn-lesson-mgr" title="수업 관리 (L)" style="font-size:15px">📚</button>
+    </div>
+    <div id="lesson-nav-wrap">
+      <button id="lesson-title-bar" title="수업 전환 ▾"></button>
+      <div id="lesson-nav-dropdown" class="lnav-dropdown"></div>
+    </div>
+  </div>
+
+  <!-- SLIDE AREA -->
+  <div id="slide-container">
+    <div id="slide-track"></div>
+    <canvas id="drawing-canvas" class="mode-navigate"></canvas>
+    <!-- Nav touch zones -->
+    <div class="nav-zone" id="nav-prev" title="이전">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div class="nav-zone" id="nav-next" title="다음">
+      <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div id="side-panel">
+    <div class="panel-header">
+      <span>자료</span>
+      <button class="panel-close" id="panel-close-btn">&times;</button>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="status-bar">
+    <span id="status-slide">Slide 1/1</span>
+    <span id="status-tool">포인터</span>
+    <span id="status-lesson"></span>
+  </div>
+
+  <!-- BLACKOUT -->
+  <div id="blackout"><span>화면을 터치하거나 아무 키를 누르세요</span></div>
+
+  <!-- LESSON MANAGER MODAL -->
+  <div id="lesson-modal">
+    <div class="lm-dialog">
+      <div class="lm-header">
+        <span>📚 수업 관리</span>
+        <button class="lm-close" id="lm-close">&times;</button>
+      </div>
+      <div class="lm-body">
+        <div class="lm-tabs">
+          <button class="lm-tab active" data-lm-tab="load">새 수업 붙여넣기</button>
+          <button class="lm-tab" data-lm-tab="saved">저장된 수업</button>
+          <button class="lm-tab" data-lm-tab="edit">현재 수업 편집</button>
+        </div>
+        <!-- TAB: 붙여넣기 -->
+        <div class="lm-section active" id="lm-sec-load">
+          <div class="lm-label">Claude가 생성한 수업 데이터 붙여넣기</div>
+          <textarea class="lm-textarea" id="lm-paste" placeholder='Claude가 만들어준 코드를 여기에 붙여넣으세요.
+
+window.LESSON_DATA = {
+  title: "...",
+  slides: [...]
+};
+
+또는 JSON 형식도 됩니다:
+{
+  "title": "...",
+  "slides": [...]
+}'></textarea>
+          <div class="lm-hint">
+            💡 Claude Cowork에 영어 지문을 주고 "양영 화이트보드 수업 데이터로 만들어줘"라고 하면 자동 생성됩니다.<br>
+            &nbsp;&nbsp;&nbsp;• <code>window.LESSON_DATA = {...}</code> 형식 OK<br>
+            &nbsp;&nbsp;&nbsp;• 순수 JSON <code>{...}</code> 형식 OK
+          </div>
+          <div class="lm-actions">
+            <button class="lm-btn lm-btn-primary" id="lm-btn-load">로드 & 저장</button>
+          </div>
+        </div>
+        <!-- TAB: 저장된 수업 목록 -->
+        <div class="lm-section" id="lm-sec-saved">
+          <ul class="lm-list" id="lm-saved-list"></ul>
+        </div>
+        <!-- TAB: 현재 수업 편집 -->
+        <div class="lm-section" id="lm-sec-edit">
+          <div class="lm-label">현재 수업 데이터 (JSON)</div>
+          <textarea class="lm-textarea" id="lm-edit" style="height:360px"></textarea>
+          <div class="lm-hint">⚠️ JSON 문법이 틀리면 로드 실패합니다. 수정 후 저장 버튼을 누르세요.</div>
+          <div class="lm-actions">
+            <button class="lm-btn lm-btn-primary" id="lm-btn-save-edit">수정 저장 & 적용</button>
+            <button class="lm-btn lm-btn-secondary" id="lm-btn-copy">복사</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="lm-toast" id="lm-toast"></div>
+</div>
+
+<!-- LESSON LIBRARY: 수업 파일들 (lessons/ 폴더의 .js 파일 추가) -->
+<script>window.LESSON_LIBRARY = [];</script>
+<script>
+// 수능특강 영어 03과 — 요지 파악 (5개 지문 통합)
+;(function(){ window.LESSON_LIBRARY = window.LESSON_LIBRARY || [];
+window.LESSON_LIBRARY.push({
+  title: "수능특강 03과 — 요지 파악",
+  chapter: "03과",
+  settings: {
+    defaultBg: "white",
+    defaultFontSize: 30,
+    revealMode: "sequential"
+  },
+  slides: [
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // TITLE
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "title",
+      title: "03 요지 파악",
+      subtitle: "수능특강 영어 · 유형편 Part I"
+    },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // GATEWAY — 감정 이해와 집단 소통
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "freeform",
+      title: "Gateway · 7단계 분석",
+      html: "<div style='font-size:0.95em;line-height:1.9'><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:3px solid #7c3aed'><th style='padding:10px;text-align:left;width:140px'>분석 단계</th><th style='padding:10px;text-align:left'>내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Theme</td><td style='padding:10px'>감정 이해 능력(A) → 집단 내 소통·협력 촉진(B)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Overview</td><td style='padding:10px'>주제문 → 부연(효과) → 예시(집단 갈등) → 결론</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Timeline</td><td style='padding:10px'>① 감정 이해 능력이 집단에서 유용 → ② 명확한 소통 촉진 → ③ 갈등 시 자기표현+타인 관점 이해 → ④ 열린 소통과 건설적 해결 촉진</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Title</td><td style='padding:10px'>감정 이해: 집단의 숨은 소통 엔진</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Gist</td><td style='padding:10px'>감정 이해 능력은 집단 내 원활한 소통과 협력을 촉진한다.</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Main Sentence</td><td style='padding:10px;font-style:italic'>Appreciation of differences creates an arena for open communication and promotes constructive conflict resolution.</td></tr><tr><td style='padding:10px;font-weight:700;color:#7c3aed'>Paraphrase</td><td style='padding:10px'>understand emotions = comprehend feelings / facilitate = promote / accommodate = satisfy / constructive = productive</td></tr></table></div>"
+    },
+    {
+      type: "passage",
+      title: "Gateway — Emotion Understanding in Groups",
+      content: "The ability to understand emotions — to have a diverse emotion vocabulary and to understand the causes and consequences of emotion — is particularly relevant in group settings. Individuals who are skilled in this domain are able to express emotions, feelings and moods accurately and thus, may facilitate clear communication between co-workers. Furthermore, they may be more likely to act in ways that accommodate their own needs as well as the needs of others (i.e. cooperate). In a group conflict situation, for example, a member with a strong ability to understand emotion will be able to express how he feels about the problem and why he feels this way. He also should be able to take the perspective of the other group members and understand why they are reacting in a certain manner. Appreciation of differences creates an arena for open communication and promotes constructive conflict resolution and improved group functioning.",
+      reveals: [
+        { start: 0, end: 176, label: "주제문" },
+        { start: 177, end: 478, label: "부연 — 감정 이해의 효과" },
+        { start: 479, end: 789, label: "구체적 예시 — 집단 갈등" },
+        { start: 790, end: 935, label: "결론 — 요지" }
+      ],
+      vocabulary: [
+        { word: "diverse", meaning: "다양한" },
+        { word: "consequence", meaning: "결과" },
+        { word: "facilitate", meaning: "촉진하다" },
+        { word: "accommodate", meaning: "수용하다" },
+        { word: "perspective", meaning: "관점" },
+        { word: "constructive", meaning: "건설적인" },
+        { word: "resolution", meaning: "해결" },
+        { word: "appreciation", meaning: "이해, 인식" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Gateway 문제",
+      items: [
+        {
+          question: "[요지] 다음 글의 요지로 가장 적절한 것은?",
+          options: [
+            "집단 구성원 간 갈등 해소를 위해 감정 조절이 중요하다.",
+            "감정 이해 능력은 집단 내 원활한 소통과 협력을 촉진한다.",
+            "타인에 대한 공감 능력은 자신의 감정 표현 능력을 향상한다.",
+            "감정 관련 어휘에 대한 지식은 공감 능력 발달의 기반이 된다.",
+            "자신의 감정 상태에 대한 이해는 사회성 함양에 필수적 요소이다."
+          ],
+          answer: 1,
+          explanation: "주제문에서 감정 이해가 집단 환경에서 유용하다고 하고, 결론에서 열린 소통과 건설적 갈등 해결을 촉진한다고 마무리. ②가 정답."
+        },
+        {
+          question: "[빈칸] 다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\nThe ability to understand emotions is particularly relevant in group settings because individuals skilled in this domain may ______.",
+          options: [
+            "suppress their own emotions to avoid conflicts",
+            "facilitate clear communication and cooperative behavior",
+            "dominate group discussions with emotional arguments",
+            "reduce the diversity of perspectives within the group",
+            "replace logical thinking with emotional responses"
+          ],
+          answer: 1,
+          explanation: "지문에서 감정 이해 능력이 뛰어난 개인은 명확한 소통을 촉진하고 협력적으로 행동한다고 서술. ②가 정답."
+        }
+      ]
+    },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // EX01 — 환경 평판과 인재 채용
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "freeform",
+      title: "Ex01 · 7단계 분석",
+      html: "<div style='font-size:0.95em;line-height:1.9'><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:3px solid #7c3aed'><th style='padding:10px;text-align:left;width:140px'>분석 단계</th><th style='padding:10px;text-align:left'>내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Theme</td><td style='padding:10px'>기업의 환경적 평판(A) → 젊은 인재 채용에 유리(B)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Overview</td><td style='padding:10px'>주제문 → 인용 사례(Dell) → 연구 사례(Rutgers) → 유보적 결론</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Timeline</td><td style='padding:10px'>① 젊은 세대의 환경 의식 ↑ → ② 기업 환경 평판이 채용에 영향 → ③ Dell 사례 → ④ 대학생 45% 급여 15% 포기 가능 → ⑤ 설문과 실제 행동의 괴리 가능성</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Gist</td><td style='padding:10px'>환경적 평판이 좋은 기업이 젊은 인재 채용에 이점이 있을 수도 있다.</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Main Sentence</td><td style='padding:10px;font-style:italic'>A company's environmental reputation may affect its ability to recruit talent.</td></tr><tr><td style='padding:10px;font-weight:700;color:#7c3aed'>Paraphrase</td><td style='padding:10px'>prevalence = frequency / consciousness = awareness / recruit = hire / correlate with = be connected to</td></tr></table></div>"
+    },
+    {
+      type: "passage",
+      title: "Ex01 — Environmental Reputation & Talent",
+      content: "The higher prevalence of environmental consciousness among younger generations means that a company's environmental reputation may affect its ability to recruit talent. \"We know that it makes a hiring difference when we're out recruiting at universities. People ask about sustainability, and our recruiters do talk about our packaging, so it is a draw for talent,\" said Oliver Campbell, director of procurement at Dell. A Rutgers University study of worker priorities found that nearly half of college students (45 percent) said in 2012 that they would give up a 15 percent higher salary to have a job \"that seeks to make a social or environmental difference in the world.\" Naturally, such responses to surveys may or may not correlate with actual behavior, but they may be an indicator.",
+      reveals: [
+        { start: 0, end: 168, label: "주제문" },
+        { start: 169, end: 419, label: "인용 사례 — Dell" },
+        { start: 420, end: 673, label: "연구 사례 — Rutgers" },
+        { start: 674, end: 787, label: "유보적 결론" }
+      ],
+      vocabulary: [
+        { word: "prevalence", meaning: "널리 퍼져 있음" },
+        { word: "consciousness", meaning: "의식" },
+        { word: "reputation", meaning: "평판" },
+        { word: "recruit", meaning: "채용하다" },
+        { word: "sustainability", meaning: "지속 가능성" },
+        { word: "procurement", meaning: "조달, 입수" },
+        { word: "correlate", meaning: "상관관계가 있다" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Ex01 문제",
+      items: [
+        {
+          question: "[요지] 다음 글의 요지로 가장 적절한 것은?",
+          options: [
+            "직원 복지 정책이 더 우수한 기업이 구직자들의 호감을 얻는다.",
+            "젊은 세대일수록 높은 소득보다는 개인적 삶의 질을 우선시한다.",
+            "노동 환경 개선을 위한 설문을 통해 직장 만족도를 높일 수 있다.",
+            "환경 의식이 높은 직장일수록 친환경 제품을 사용하는 경향이 있다.",
+            "환경적 평판이 좋은 기업이 젊은 인재 채용에 이점이 있을 수도 있다."
+          ],
+          answer: 4,
+          explanation: "주제문: 기업의 환경적 평판이 인재 채용에 영향. 결론에서 'may or may not'으로 유보적 표현. ⑤가 정답."
+        },
+        {
+          question: "[내용일치] 다음 글의 내용과 일치하지 않는 것은?",
+          options: [
+            "젊은 세대에서 환경 의식이 더 높게 나타난다.",
+            "Dell의 채용 담당자가 지속 가능성에 대해 이야기한다.",
+            "대학생의 과반수가 급여를 포기할 용의가 있다고 답했다.",
+            "설문 응답이 실제 행동과 일치하지 않을 수도 있다.",
+            "Rutgers 대학교 연구가 노동자 우선순위를 조사했다."
+          ],
+          answer: 2,
+          explanation: "지문에서 'nearly half (45 percent)'라고 했으므로 과반수(50% 이상)가 아님. ③이 불일치."
+        }
+      ]
+    },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // EX02 — 소속 불확실성
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "freeform",
+      title: "Ex02 · 7단계 분석",
+      html: "<div style='font-size:0.95em;line-height:1.9'><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:3px solid #7c3aed'><th style='padding:10px;text-align:left;width:140px'>분석 단계</th><th style='padding:10px;text-align:left'>내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Theme</td><td style='padding:10px'>소속 불확실성(A) → 방어적 태도·행동 제약(B)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Overview</td><td style='padding:10px'>도입(누구나 취약) → 정의(belonging uncertainty) → 부정적 효과 → 구체적 행동 변화</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Timeline</td><td style='padding:10px'>① 누구나 소속감 의심 가능 → ② 용어 정의 → ③ 부정적 효과(가능성의 지평 축소) → ④ 방어적 해석 → ⑤ 의견 표현 ↓, 비판 민감 ↑, 도전 회피</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Gist</td><td style='padding:10px'>소속 불확실성은 부정적 영향을 미쳐 행동 제약을 초래한다.</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Main Sentence</td><td style='padding:10px;font-style:italic'>Belonging uncertainty has adverse effects. When we perceive threats to our sense of belonging, our horizon of possibility shrinks.</td></tr><tr><td style='padding:10px;font-weight:700;color:#7c3aed'>Paraphrase</td><td style='padding:10px'>vulnerable = susceptible / adverse = negative / shrink = decrease / infer = conclude / inclined = willing</td></tr></table></div>"
+    },
+    {
+      type: "passage",
+      title: "Ex02 — Belonging Uncertainty",
+      content: "We can all become vulnerable to doubts about our belonging at any given moment, depending on the situations we find ourselves in and how we interpret them. Greg Walton and I coined the term \"belonging uncertainty\" to refer to the state of mind in which one suffers from doubts about whether one is fully accepted in a particular environment or ever could be. We can experience it in the workplace, at school, at a fancy restaurant, or even in a brief social encounter. Belonging uncertainty has adverse effects. When we perceive threats to our sense of belonging, our horizon of possibility shrinks. We tend to interpret ourselves, other people, and the situation in a defensive and self-protective way. We more readily infer that we are incapable or that we aren't meant to be there, that we will not understand or be understood. We're less likely to express our views, especially if they differ from those of others. We're more sensitive to perceived criticism. We're less inclined to accept challenges that pose a risk of failure.",
+      reveals: [
+        { start: 0, end: 155, label: "도입 — 누구나 취약" },
+        { start: 156, end: 468, label: "정의 — 소속 불확실성" },
+        { start: 469, end: 599, label: "부연 — 부정적 효과" },
+        { start: 600, end: 1033, label: "구체적 행동 변화" }
+      ],
+      vocabulary: [
+        { word: "vulnerable", meaning: "취약한" },
+        { word: "coined", meaning: "(용어를) 만들다" },
+        { word: "adverse", meaning: "부정적인" },
+        { word: "perceive", meaning: "인식하다" },
+        { word: "shrink", meaning: "줄어들다" },
+        { word: "defensive", meaning: "방어적인" },
+        { word: "inclined", meaning: "~하는 경향이 있는" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Ex02 문제",
+      items: [
+        {
+          question: "[요지] 다음 글의 요지로 가장 적절한 것은?",
+          options: [
+            "성과를 과시하는 행동은 소속감에 부정적인 영향을 준다.",
+            "소속감은 개인이 새로운 환경에 적응하는 데 도움이 된다.",
+            "개인의 자율성은 확실한 소속감으로 인해 강화될 수 있다.",
+            "불확실한 소속감은 비판적 태도를 증가시키는 요인이 된다.",
+            "소속 불확실성은 부정적 영향을 미쳐 행동 제약을 초래한다."
+          ],
+          answer: 4,
+          explanation: "주제문 'adverse effects' + 구체적 영향(의견 표현 감소, 도전 회피 등)이 핵심. ⑤가 정답."
+        },
+        {
+          question: "[어휘] 밑줄 친 adverse와 의미가 가장 가까운 것은?",
+          options: [
+            "beneficial",
+            "negligible",
+            "detrimental",
+            "temporary",
+            "predictable"
+          ],
+          answer: 2,
+          explanation: "adverse = 불리한, 해로운. detrimental(해로운)이 동의어. ③이 정답."
+        }
+      ]
+    },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // EX03 — 쾌락의 비대칭성
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "freeform",
+      title: "Ex03 · 7단계 분석",
+      html: "<div style='font-size:0.95em;line-height:1.9'><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:3px solid #7c3aed'><th style='padding:10px;text-align:left;width:140px'>분석 단계</th><th style='padding:10px;text-align:left'>내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Theme</td><td style='padding:10px'>좋은 일 vs 나쁜 일(A) → 부정적 감정이 더 오래 지속(B)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Overview</td><td style='padding:10px'>연구 소개 → 관찰(지속 시간 차이) → 예시(월/화) → 법칙 제시</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Timeline</td><td style='padding:10px'>① 일상의 좋은/나쁜 사건 연구 → ② 긍정은 단명, 부정은 오래 지속 → ③ 좋은 월요일은 화요일에 영향 없음 → ④ 나쁜 월요일은 우울한 화요일 예측 → ⑤ 쾌락의 비대칭성 법칙</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Gist</td><td style='padding:10px'>좋은 일보다 나쁜 일로 인한 감정이 더 오래 지속된다.</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Main Sentence</td><td style='padding:10px;font-style:italic'>Pleasure is always dependent on change and disappears with continuous satisfaction, whereas pain persists under persisting unpleasant conditions.</td></tr><tr><td style='padding:10px;font-weight:700;color:#7c3aed'>Paraphrase</td><td style='padding:10px'>short-lived = brief / sustained = lasting / gloomy = depressing / persist = continue / asymmetry = imbalance</td></tr></table></div>"
+    },
+    {
+      type: "passage",
+      title: "Ex03 — Hedonic Asymmetry",
+      content: "A group of psychologists looked at the effects of everyday good and bad events — getting a compliment from your boss, bad weather, getting stuck in traffic, etc. Not surprisingly, good events had a positive impact on people's mood and negative events brought people down. But the duration of the experiences differed dramatically. Positive events were short-lived. The negative events stayed longer. In one study, having a good day did not have any noticeable impact on the subsequent day. That is, a good Monday didn't carry over to Tuesday. But negative events had a sustained impact — a bad Monday predicted a gloomy Tuesday. This pattern is so strong that it is considered a \"law\" of human behavior. Specifically, the law of hedonic asymmetry states that \"pleasure is always dependent on change and disappears with continuous satisfaction, whereas pain persists under persisting unpleasant conditions.\"",
+      reveals: [
+        { start: 0, end: 161, label: "도입 — 연구 소개" },
+        { start: 162, end: 399, label: "관찰 — 긍정 vs 부정" },
+        { start: 400, end: 628, label: "구체적 예시 — 월/화" },
+        { start: 629, end: 906, label: "결론 — 쾌락의 비대칭성 법칙" }
+      ],
+      vocabulary: [
+        { word: "compliment", meaning: "칭찬" },
+        { word: "duration", meaning: "지속 기간" },
+        { word: "dramatically", meaning: "극적으로" },
+        { word: "short-lived", meaning: "수명이 짧은" },
+        { word: "sustained", meaning: "지속적인" },
+        { word: "gloomy", meaning: "우울한" },
+        { word: "persist", meaning: "지속되다" },
+        { word: "asymmetry", meaning: "비대칭" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Ex03 문제",
+      items: [
+        {
+          question: "[요지] 다음 글의 요지로 가장 적절한 것은?",
+          options: [
+            "월요일의 기분이 한 주의 기분을 좌우할 수 있다.",
+            "좋은 일보다 나쁜 일로 인한 감정이 더 오래 지속된다.",
+            "부정적인 감정은 긍정적인 경험을 통해 극복될 수 있다.",
+            "같은 사건이라도 개인에 따라 느끼는 감정은 다를 수 있다.",
+            "부정적인 감정은 집단 구성원 사이에서 금방 퍼지는 경향이 있다."
+          ],
+          answer: 1,
+          explanation: "핵심: 긍정은 short-lived, 부정은 sustained. 쾌락의 비대칭성 법칙. ②가 정답."
+        },
+        {
+          question: "[순서] 주어진 글 다음에 이어질 글의 순서로 가장 적절한 것은?\n\n(A) In one study, a good Monday didn't carry over to Tuesday, but a bad Monday predicted a gloomy Tuesday.\n(B) Good events had a positive impact on mood, but the duration differed dramatically — positive events were short-lived while negative events stayed longer.\n(C) This pattern, known as the law of hedonic asymmetry, states that pleasure disappears with continuous satisfaction, whereas pain persists.",
+          options: [
+            "(A) - (B) - (C)",
+            "(A) - (C) - (B)",
+            "(B) - (A) - (C)",
+            "(B) - (C) - (A)",
+            "(C) - (A) - (B)"
+          ],
+          answer: 2,
+          explanation: "관찰(B) → 구체 예시(A) → 법칙 제시(C). ③이 정답."
+        }
+      ]
+    },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // EX04 — 범주화의 한계
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "freeform",
+      title: "Ex04 · 7단계 분석",
+      html: "<div style='font-size:0.95em;line-height:1.9'><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:3px solid #7c3aed'><th style='padding:10px;text-align:left;width:140px'>분석 단계</th><th style='padding:10px;text-align:left'>내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Theme</td><td style='padding:10px'>인간의 범주화 욕구(A) → 세상의 복잡성으로 인한 한계(B)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Overview</td><td style='padding:10px'>도입(범주화 욕구) → 전환(실패) → 부연(인위적 범주도 한계) → 결론(세상의 복잡성)</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Timeline</td><td style='padding:10px'>① 규칙으로 범주 정의 욕구 → ② 거의 모든 시도 실패 → ③ 자연적 범주는 정의 불가 → ④ 인위적 범주도 한계 → ⑤ 세상의 자연적 복잡성과 무질서 때문</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px;font-weight:700;color:#7c3aed'>Gist</td><td style='padding:10px'>세상의 복잡성과 무질서로 인해 인간의 범주화 시도는 한계가 있다.</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px;font-weight:700;color:#7c3aed'>Main Sentence</td><td style='padding:10px;font-style:italic'>This is not due to any human failing, but simply to the natural complexity and messiness of the world.</td></tr><tr><td style='padding:10px;font-weight:700;color:#7c3aed'>Paraphrase</td><td style='padding:10px'>impose = enforce / ambiguity = vagueness / diagnostic = relating to diagnosis / bureaucracy = administration / messiness = disorder</td></tr></table></div>"
+    },
+    {
+      type: "passage",
+      title: "Ex04 — Limits of Categorization",
+      content: "People have a strong desire to define categories using rules. It is a natural human goal to impose order and sense on the world, to be able to know what boxes everything should go into, with no ambiguity. The disappointing aspect is that this urge has failed in almost every attempt. Most natural categories simply do not have a definition or rule that comes close to working. Even human-made categories in systems of rules, like games, legal systems, official diagnostic categories, and the like can put only so much order into the universe. There are always test cases that seem to break the rules — unclear category membership, not fitting into any category, or just giving the wrong answer. This is not due to any human failing, I believe, but simply to the natural complexity and messiness of the world. No religion, legal system, or bureaucracy can completely control the variation and weird events that occur even in limited worlds like baseball or disease classification.",
+      reveals: [
+        { start: 0, end: 204, label: "도입 — 범주화 욕구" },
+        { start: 205, end: 376, label: "전환 — 범주화의 실패" },
+        { start: 377, end: 694, label: "부연 — 인위적 범주도 한계" },
+        { start: 695, end: 979, label: "결론 — 세상의 복잡성" }
+      ],
+      vocabulary: [
+        { word: "impose", meaning: "부과하다" },
+        { word: "ambiguity", meaning: "모호함" },
+        { word: "urge", meaning: "충동, 욕구" },
+        { word: "diagnostic", meaning: "진단의" },
+        { word: "complexity", meaning: "복잡성" },
+        { word: "messiness", meaning: "무질서" },
+        { word: "bureaucracy", meaning: "관료주의" },
+        { word: "variation", meaning: "변이, 다양성" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Ex04 문제",
+      items: [
+        {
+          question: "[요지] 다음 글의 요지로 가장 적절한 것은?",
+          options: [
+            "대상의 유사성 파악을 통한 범주화는 효율적인 학습 방법이 된다.",
+            "세상의 복잡성과 무질서로 인해 인간의 범주화 시도는 한계가 있다.",
+            "공정한 판단은 전형적 범주 외의 예외적 항목을 고려할 때 가능하다.",
+            "세상에 질서를 부여하는 인간의 능력이 성공적인 범주화를 가능케 한다.",
+            "종교가 법적 체계 안에서 범주화되어야 개인과 사회의 안정이 보장된다."
+          ],
+          answer: 1,
+          explanation: "핵심문장: 'natural complexity and messiness of the world'가 범주화 실패의 원인. ②가 정답."
+        },
+        {
+          question: "[빈칸] 다음 빈칸에 들어갈 말로 가장 적절한 것은?\n\nThe desire to categorize the world using rules has largely failed because ______.",
+          options: [
+            "human intelligence is insufficient for abstract thinking",
+            "rules are deliberately designed to be flexible",
+            "the world's natural complexity resists neat classification",
+            "people lack the motivation to maintain consistent categories",
+            "legal systems have monopolized the power of categorization"
+          ],
+          answer: 2,
+          explanation: "결론에서 'natural complexity and messiness of the world'가 원인이라고 서술. ③이 정답."
+        }
+      ]
+    },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // GRAMMAR — 3과 핵심 문법
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "grammar",
+      title: "03과 핵심 문법",
+      points: [
+        {
+          rule: "관계대명사 who + 불완전한 문장 (주격)",
+          example: "Individuals who are skilled in this domain are able to express emotions accurately.",
+          highlight: "who"
+        },
+        {
+          rule: "that절 — 명사절 (목적어 역할)",
+          example: "A Rutgers study found that nearly half of college students would give up a higher salary.",
+          highlight: "that"
+        },
+        {
+          rule: "whether — 간접의문문 (명사절)",
+          example: "One suffers from doubts about whether one is fully accepted in a particular environment.",
+          highlight: "whether"
+        },
+        {
+          rule: "so ~ that ... — 결과 구문",
+          example: "This pattern is so strong that it is considered a \"law\" of human behavior.",
+          highlight: "so strong that"
+        },
+        {
+          rule: "not A but B — 대조 구문",
+          example: "This is not due to any human failing, but simply to the natural complexity of the world.",
+          highlight: "not due to"
+        }
+      ]
+    },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // KEY SENTENCES
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "keysentence",
+      title: "03과 핵심 문장",
+      sentences: [
+        {
+          en: "Appreciation of differences creates an arena for open communication and promotes constructive conflict resolution.",
+          ko: "다름에 대한 이해는 열린 의사소통의 장을 만들고 건설적인 갈등 해결을 촉진한다.",
+          grammar_note: "and 병렬구조: creates A and promotes B"
+        },
+        {
+          en: "Belonging uncertainty has adverse effects — when we perceive threats to our sense of belonging, our horizon of possibility shrinks.",
+          ko: "소속 불확실성은 부정적 영향을 미친다 — 소속감에 대한 위협을 인식하면 가능성의 지평이 줄어든다.",
+          grammar_note: "when절 (시간/조건) + 주절"
+        },
+        {
+          en: "Pleasure is always dependent on change and disappears with continuous satisfaction, whereas pain persists under persisting unpleasant conditions.",
+          ko: "쾌락은 항상 변화에 의존하고 지속적 만족과 함께 사라지지만, 고통은 지속적인 불쾌한 조건하에서 계속된다.",
+          grammar_note: "whereas = ~인 반면에 (대조 접속사)"
+        },
+        {
+          en: "No religion, legal system, or bureaucracy can completely control the variation and weird events that occur even in limited worlds.",
+          ko: "어떤 종교, 법적 체계, 관료주의도 제한된 세계에서조차 발생하는 변이와 기이한 사건을 완전히 통제할 수 없다.",
+          grammar_note: "No A, B, or C + can = A, B, C 어느 것도 ~할 수 없다"
+        }
+      ]
+    },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // VOCABULARY TABLE
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "freeform",
+      title: "03과 핵심 어휘 정리",
+      html: "<table style='width:100%;border-collapse:collapse;font-size:0.95em'><thead><tr style='border-bottom:3px solid #7c3aed;text-align:left'><th style='padding:10px 14px'>Word</th><th style='padding:10px 14px'>Meaning</th><th style='padding:10px 14px'>Synonym</th></tr></thead><tbody><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>facilitate</td><td style='padding:10px 14px'>촉진하다</td><td style='padding:10px 14px;color:#475569'>promote, encourage</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>accommodate</td><td style='padding:10px 14px'>수용하다</td><td style='padding:10px 14px;color:#475569'>satisfy, adjust to</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>prevalence</td><td style='padding:10px 14px'>널리 퍼져 있음</td><td style='padding:10px 14px;color:#475569'>frequency, commonness</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>adverse</td><td style='padding:10px 14px'>불리한, 해로운</td><td style='padding:10px 14px;color:#475569'>detrimental, harmful</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>perceive</td><td style='padding:10px 14px'>인식하다</td><td style='padding:10px 14px;color:#475569'>recognize, detect</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>sustained</td><td style='padding:10px 14px'>지속적인</td><td style='padding:10px 14px;color:#475569'>lasting, prolonged</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>impose</td><td style='padding:10px 14px'>부과하다</td><td style='padding:10px 14px;color:#475569'>enforce, establish</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>ambiguity</td><td style='padding:10px 14px'>모호함</td><td style='padding:10px 14px;color:#475569'>vagueness, uncertainty</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>correlate</td><td style='padding:10px 14px'>상관관계가 있다</td><td style='padding:10px 14px;color:#475569'>correspond, relate</td></tr><tr style='background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>bureaucracy</td><td style='padding:10px 14px'>관료주의</td><td style='padding:10px 14px;color:#475569'>administration, red tape</td></tr></tbody></table>"
+    },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // DISCUSSION
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    {
+      type: "freeform",
+      title: "Discussion & Activity",
+      html: "<div style='font-size:1.05em;line-height:2.2'><ol><li><b>감정 이해 (Gateway)</b>: 집단에서 감정을 이해하는 능력이 부족할 때 어떤 문제가 발생하는지 경험을 이야기해 보세요.</li><li><b>환경 평판 (Ex01)</b>: 여러분이 취업할 때 기업의 환경 정책을 얼마나 중요하게 생각하나요?</li><li><b>소속감 (Ex02)</b>: 소속 불확실성을 느낀 경험이 있나요? 어떻게 극복했나요?</li><li><b>감정 지속 (Ex03)</b>: 나쁜 경험의 감정이 더 오래 지속되는 것을 막을 방법은 무엇일까요?</li><li><b>범주화 (Ex04)</b>: '규칙으로 정의할 수 없는 범주'의 실제 사례를 들어 보세요.</li></ol></div>"
+    },
+
+    { type: "blank" }
+  ],
+
+  resources: [
+    {
+      label: "03과 핵심 단어",
+      type: "vocabulary",
+      items: [
+        { word: "facilitate", meaning: "촉진하다" },
+        { word: "accommodate", meaning: "수용하다" },
+        { word: "constructive", meaning: "건설적인" },
+        { word: "prevalence", meaning: "널리 퍼져 있음" },
+        { word: "sustainability", meaning: "지속 가능성" },
+        { word: "adverse", meaning: "불리한" },
+        { word: "vulnerable", meaning: "취약한" },
+        { word: "perceive", meaning: "인식하다" },
+        { word: "sustained", meaning: "지속적인" },
+        { word: "asymmetry", meaning: "비대칭" },
+        { word: "impose", meaning: "부과하다" },
+        { word: "ambiguity", meaning: "모호함" },
+        { word: "bureaucracy", meaning: "관료주의" }
+      ]
+    },
+    {
+      label: "요지 파악 전략",
+      type: "html",
+      content: "<div style='font-size:0.9em;line-height:1.8'><b>3단계 풀이법</b><br>① 반복 어구로 글의 소재 파악<br>② 내용을 유기적으로 연결하며 요지 추론<br>③ 마무리 문장으로 요지 확인<br><br><b>주의할 점</b><br>• 요지 ≠ 주제 (요지는 '주장/결론'을 포함)<br>• 선지에서 '지나친 일반화'나 '범위 축소' 주의<br>• 예시에 빠지지 말고 전체 흐름에서 판단</div>"
+    }
+  ]
+}); })();
+
+</script>
+<script>
+// 수능특강 영어 04과 — 주장 파악 (Gateway + Exercises 01~04)
+// 양영학원 7단계 분석 시스템 적용
+;(function(){ window.LESSON_LIBRARY = window.LESSON_LIBRARY || [];
+window.LESSON_LIBRARY.push({
+  title: "수능특강 04과 — 주장 파악",
+  chapter: "4과",
+  settings: {
+    defaultBg: "white",
+    defaultFontSize: 30,
+    revealMode: "sequential"
+  },
+  slides: [
+    // ================================================================
+    // 타이틀
+    // ================================================================
+    {
+      type: "title",
+      title: "04 주장 파악",
+      subtitle: "수능특강 영어 · Claim Identification"
+    },
+
+    // ================================================================
+    // GATEWAY — 학습에 활용 가능한 게임 개발 (2025학년도 수능 20번)
+    // ================================================================
+    {
+      type: "freeform",
+      title: "Gateway 7단계 분석 — 게임과 학습",
+      html: "<table style='width:100%;border-collapse:collapse;font-size:0.92em'><tr style='background:#7c3aed;color:#fff'><th style='padding:10px 14px;text-align:left;width:130px'>단계</th><th style='padding:10px 14px;text-align:left'>분석 내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>① Theme</td><td style='padding:10px 14px'>A(게임 = 학습 방해 도구) → B(게임 = 학습 성과 향상 도구)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>② Overview</td><td style='padding:10px 14px'>통념 제시 → 통념 반박 → 주장 → 기대 효과</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>③ Timeline</td><td style='padding:10px 14px'>accept(통념) → And yet(전환) → While(양보) → Rather(강한 전환) → This will(결론)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>④ Title</td><td style='padding:10px 14px'>Games as Learning Tools, Not Distractions</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑤ Gist</td><td style='padding:10px 14px'>학습 성과에 연결되는 게임을 개발해야 한다</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑥ Main Sentence</td><td style='padding:10px 14px;font-style:italic'>Rather, it is desirable that we develop games that connect to the learning outcomes we want for our students.</td></tr><tr><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑦ Paraphrase</td><td style='padding:10px 14px'>enhance productivity = improve learning efficiency / take advantage of = utilize / attention commanding = engagement-capturing</td></tr></table>"
+    },
+    {
+      type: "passage",
+      title: "Gateway — Video Games & Learning",
+      content: "We almost universally accept that playing video games is at best a pleasant break from a student's learning and more often what prevents a student from accomplishing their goals. Games catch and hold attention in a way that few things can. And yet once they have our focus, they rarely seem to offer anything meaningful to help students grow in their lives outside the games. While this may be true for many games, we are too easily ignoring a valuable tool that could be used to enhance productivity instead of derailing it. Rather, it is desirable that we develop games that connect to the learning outcomes we want for our students. This will enable educators to take advantage of games' attention commanding capacities and allow our students to enjoy their games while learning.",
+      reveals: [
+        { start: 0, end: 178, label: "통념 — 게임은 학습 방해" },
+        { start: 179, end: 375, label: "부연 — 게임의 한계" },
+        { start: 376, end: 525, label: "전환 — 필자 의견" },
+        { start: 526, end: 782, label: "결론 — 주장" }
+      ],
+      vocabulary: [
+        { word: "universally", meaning: "보편적으로" },
+        { word: "accomplish", meaning: "이루다, 성취하다" },
+        { word: "enhance", meaning: "향상하다" },
+        { word: "derail", meaning: "저해하다, 망치다" },
+        { word: "desirable", meaning: "바람직한" },
+        { word: "outcome", meaning: "성과, 결과" },
+        { word: "take advantage of", meaning: "~을 활용하다" },
+        { word: "commanding", meaning: "지배하는, 압도적인" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Gateway 문제",
+      items: [
+        {
+          question: "[원문] 다음 글에서 필자가 주장하는 바로 가장 적절한 것은?",
+          options: [
+            "학습 효과 증진에 활용될 수 있는 게임을 개발해야 한다.",
+            "교육 현장에서 학습과 게임 활동을 적절하게 분배해야 한다.",
+            "학습 활동에 게임이 초래하는 집중력 저하를 경계해야 한다.",
+            "여가 시간에 게임을 활용함으로써 학습 효율을 향상해야 한다.",
+            "게임의 부정적 영향을 줄이기 위해 학습 공동체가 노력해야 한다."
+          ],
+          answer: 0,
+          explanation: "필자는 게임이 학습 방해 도구라는 통념을 반박하며, 학습 성과에 연결되는 게임을 개발하는 것이 바람직하다(it is desirable that we develop games that connect to the learning outcomes)고 주장함."
+        },
+        {
+          question: "[변형] 다음 빈칸에 들어갈 말로 가장 적절한 것은?\nRather than dismissing video games as distractions, educators should _______________.",
+          options: [
+            "completely ban games from educational settings",
+            "develop games aligned with learning objectives",
+            "allow unlimited gaming time during school hours",
+            "replace traditional teaching with game-based methods",
+            "focus on games that provide entertainment only"
+          ],
+          answer: 1,
+          explanation: "필자의 주장 핵심: 게임을 배척하지 말고 학습 목표와 연결된 게임을 개발하여 교육에 활용해야 한다."
+        }
+      ]
+    },
+
+    // ================================================================
+    // EXERCISE 01 — 기후 변화 대화와 지속 가능한 습관
+    // ================================================================
+    {
+      type: "freeform",
+      title: "Ex01 7단계 분석 — 기후 변화 대화",
+      html: "<table style='width:100%;border-collapse:collapse;font-size:0.92em'><tr style='background:#7c3aed;color:#fff'><th style='padding:10px 14px;text-align:left;width:130px'>단계</th><th style='padding:10px 14px;text-align:left'>분석 내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>① Theme</td><td style='padding:10px 14px'>A(기후 변화 대화 회피) → B(적극적 대화와 공동 실천)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>② Overview</td><td style='padding:10px 14px'>대화 회피 경향 → 과학적 합의 근거 → 함께하는 실천 → 구체적 행동 제안</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>③ Timeline</td><td style='padding:10px 14px'>overcome tendency(도입) → If you agree(논거) → Talking about(전환) → By sharing(행동) → Suggest(결론)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>④ Title</td><td style='padding:10px 14px'>Speaking Up and Acting Together on Climate Change</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑤ Gist</td><td style='padding:10px 14px'>주변 사람들과 기후 변화를 논의하고 함께 실천해야 한다</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑥ Main Sentence</td><td style='padding:10px 14px;font-style:italic'>By sharing interesting facts or strategies ... we can also spread the impetus for change.</td></tr><tr><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑦ Paraphrase</td><td style='padding:10px 14px'>overcome any tendency = resist the inclination / on the fringe = at the margins / impetus for change = momentum for transformation</td></tr></table>"
+    },
+    {
+      type: "passage",
+      title: "Ex01 — Climate Change Discussion",
+      content: "We think it's important to overcome any tendency to not talk about climate change for fear that other people might not feel the same way. If you agree that changes need to happen to address climate change, you are not on the fringe of society, but in line with the 97 percent of scientists that agree climate change is happening. Talking about climate change and environmental concerns can be a prompt to working together with others. Incorporating sustainable habits into our lives can be the most fun when we are doing it with the people that surround us. By sharing interesting facts or strategies with family, friends, neighbors, or coworkers on how to live more sustainably, we can also spread the impetus for change. Suggest some healthy competition on waste or energy reduction efforts to get your close network involved in reducing their impact as well.",
+      reveals: [
+        { start: 0, end: 137, label: "도입 — 기후 변화 대화의 필요성" },
+        { start: 138, end: 329, label: "근거 — 과학적 합의" },
+        { start: 330, end: 557, label: "부연 — 함께하는 실천" },
+        { start: 558, end: 861, label: "결론 — 구체적 행동 제안" }
+      ],
+      vocabulary: [
+        { word: "overcome", meaning: "극복하다" },
+        { word: "tendency", meaning: "경향, 성향" },
+        { word: "fringe", meaning: "가장자리, 주변부" },
+        { word: "in line with", meaning: "~과 일치하여" },
+        { word: "sustainable", meaning: "지속 가능한" },
+        { word: "impetus", meaning: "추진력, 자극" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Ex01 문제",
+      items: [
+        {
+          question: "[원문] 다음 글에서 필자가 주장하는 바로 가장 적절한 것은?",
+          options: [
+            "기후 변화에 대한 사회적 대응은 과학적 지식에 기반해야 한다.",
+            "기후 변화 대응 방안의 폭넓은 이해를 위한 교육을 확대해야 한다.",
+            "기후 변화에 적응할 수 있는 기술을 지속적으로 연구하고 개발해야 한다.",
+            "기후 변화 대응을 위한 공동 대책을 마련하기 위해 국제 협력을 강화해야 한다.",
+            "주변 사람들과 기후 변화에 대해 논의하며 지속 가능한 습관을 함께 실천해야 한다."
+          ],
+          answer: 4,
+          explanation: "필자는 기후 변화에 대해 대화하기를 두려워하지 말고, 가족·친구·동료와 함께 지속 가능한 습관을 실천하자고 주장함."
+        },
+        {
+          question: "[변형] 다음 글의 제목으로 가장 적절한 것은?",
+          options: [
+            "Climate Change: A Problem Beyond Our Control",
+            "The Power of Collective Action Against Climate Change",
+            "Why Scientists Disagree About Global Warming",
+            "Government Policies for Environmental Protection",
+            "The Economic Benefits of Sustainable Living"
+          ],
+          answer: 1,
+          explanation: "글의 핵심은 기후 변화에 대해 주변 사람들과 대화하고 함께 지속 가능한 습관을 실천하자는 '집단 행동의 힘'임."
+        }
+      ]
+    },
+
+    // ================================================================
+    // EXERCISE 02 — 아이들의 글쓰기 환경 조성
+    // ================================================================
+    {
+      type: "freeform",
+      title: "Ex02 7단계 분석 — 글쓰기 환경 조성",
+      html: "<table style='width:100%;border-collapse:collapse;font-size:0.92em'><tr style='background:#7c3aed;color:#fff'><th style='padding:10px 14px;text-align:left;width:130px'>단계</th><th style='padding:10px 14px;text-align:left'>분석 내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>① Theme</td><td style='padding:10px 14px'>A(글쓰기 과제 = 내용만 중시) → B(글쓰기 과제 = 편안한 환경이 전제)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>② Overview</td><td style='padding:10px 14px'>자신의 환경 상상 → 아이들에게 적용 → 중요성 강조 → 장기적 효과</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>③ Timeline</td><td style='padding:10px 14px'>think about(도입) → see if you can(전환) → And ask them(행동) → so important(강조) → You'll also find(결론)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>④ Title</td><td style='padding:10px 14px'>Comfortable Environments for Young Writers</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑤ Gist</td><td style='padding:10px 14px'>아이들이 글을 쓸 때 편안한 환경을 조성해 주어야 한다</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑥ Main Sentence</td><td style='padding:10px 14px;font-style:italic'>All these simple checks ... are so important for enabling children to gain success in reading and writing and to see it in a positive light.</td></tr><tr><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑦ Paraphrase</td><td style='padding:10px 14px'>similar luxuries = comparable comforts / gain success = achieve positive outcomes / take control = manage independently</td></tr></table>"
+    },
+    {
+      type: "passage",
+      title: "Ex02 — Writing Environment for Children",
+      content: "When setting writing tasks, either at home or school, think about how you would set yourself up if you had to write something for a period of time. Would you grab a cup of tea, clear some space on a tabletop, sit on a comfy desk chair, use your best pen? What else would you do? And whatever it is, minus perhaps the cup of tea, see if you can allow children similar luxuries. Are they thirsty, are they warm enough, is the desk/table at the right height, is the sun in their eyes, are they hungry, is their pencil sharp? And ask them what they need to write more comfortably. All these simple checks might be frustrating and delay the start of the task, but they are so important for enabling children to gain success in reading and writing and to see it in a positive light. You'll also find that children will get quicker at these checks and take control of them themselves over time, providing them with a toolkit to ensure their own well-being when writing.",
+      reveals: [
+        { start: 0, end: 254, label: "도입 — 자신의 글쓰기 환경 상상" },
+        { start: 255, end: 521, label: "전환 — 아이들에게도 같은 배려" },
+        { start: 522, end: 776, label: "주장 — 환경 점검의 중요성" },
+        { start: 777, end: 962, label: "결론 — 장기적 효과" }
+      ],
+      vocabulary: [
+        { word: "comfy", meaning: "편안한 (= comfortable)" },
+        { word: "luxuries", meaning: "사치, 호사" },
+        { word: "frustrating", meaning: "좌절감을 주는" },
+        { word: "enabling", meaning: "가능하게 하는" },
+        { word: "toolkit", meaning: "도구 세트" },
+        { word: "well-being", meaning: "안녕, 복지" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Ex02 문제",
+      items: [
+        {
+          question: "[원문] 다음 글에서 필자가 주장하는 바로 가장 적절한 것은?",
+          options: [
+            "아이들이 과제를 더디게 시작하더라도 기다려야 한다.",
+            "아이들이 글을 쓸 때 편안한 환경을 조성해 주어야 한다.",
+            "글쓰기 과제를 설정할 때 아이들의 수준을 고려해야 한다.",
+            "과제 수행 전에 아이들의 학습 수준을 미리 확인해야 한다.",
+            "글쓰기 전 충분한 독서로 배경지식을 쌓을 기회를 주어야 한다."
+          ],
+          answer: 1,
+          explanation: "필자는 아이들에게 글쓰기 과제를 줄 때 갈증, 온도, 책상 높이 등 물리적 환경을 점검해 편안한 환경을 조성해 주어야 한다고 주장."
+        },
+        {
+          question: "[변형] 다음 글의 내용과 일치하지 않는 것은?",
+          options: [
+            "필자는 어른 자신의 글쓰기 환경을 먼저 상상해보라고 권한다.",
+            "아이에게 차를 주는 것은 꼭 필요하지 않다고 언급한다.",
+            "환경 점검이 과제 시작을 지연시킬 수 있음을 인정한다.",
+            "시간이 지나면 아이들이 스스로 환경을 관리하게 된다고 말한다.",
+            "글쓰기 능력 향상을 위해 매일 정해진 시간에 쓰기를 연습해야 한다고 주장한다."
+          ],
+          answer: 4,
+          explanation: "지문에 매일 정해진 시간에 쓰기 연습이라는 내용은 없음. 필자의 핵심은 물리적 환경 조성임."
+        }
+      ]
+    },
+
+    // ================================================================
+    // EXERCISE 03 — 공학과 AI의 다양성
+    // ================================================================
+    {
+      type: "freeform",
+      title: "Ex03 7단계 분석 — AI와 다양성",
+      html: "<table style='width:100%;border-collapse:collapse;font-size:0.92em'><tr style='background:#7c3aed;color:#fff'><th style='padding:10px 14px;text-align:left;width:130px'>단계</th><th style='padding:10px 14px;text-align:left'>분석 내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>① Theme</td><td style='padding:10px 14px'>A(공학 = 기술 중심) → B(공학 = 사회 다양성 반영 필수)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>② Overview</td><td style='padding:10px 14px'>공학의 사회적 역할 → 왕립공학원 사례 → AI 윤리 = 다양성 → 결론</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>③ Timeline</td><td style='padding:10px 14px'>serves society(전제) → essential(필수) → focused on(근거1) → insists(근거2) → As with all(결론)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>④ Title</td><td style='padding:10px 14px'>Diversity: The Ethical Foundation of Engineering and AI</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑤ Gist</td><td style='padding:10px 14px'>AI 시스템 개발 시 사회적 다양성을 반영해야 한다</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑥ Main Sentence</td><td style='padding:10px 14px;font-style:italic'>As with all areas of engineering, to serve society it is essential that society is understood, involved, and represented, across its breadth.</td></tr><tr><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑦ Paraphrase</td><td style='padding:10px 14px'>represent the society = reflect societal composition / critical thread = fundamental principle / across its breadth = in its entirety</td></tr></table>"
+    },
+    {
+      type: "passage",
+      title: "Ex03 — Diversity in Engineering & AI",
+      content: "Engineering serves society, and engineering and engineers are part of society. It is essential therefore that they represent the society they are part of and meet the needs of. The Royal Academy of Engineering has focused on promoting diversity, making equality, diversity and inclusion a 'critical thread' running through their strategy for the next 5 years. Dame Wendy Hall, whose review into Artificial Intelligence (AI) with Jerome Pesenti is shaping the UK strategy on AI, insists that establishing ethics in AI must mean tackling the challenge of diversity — and is frequently quoted as saying that if a system is not diverse, it is not ethical. AI will underpin engineering systems of the future, and developing AI systems is a key challenge for engineers. As with all areas of engineering, to serve society it is essential that society is understood, involved, and represented, across its breadth.",
+      reveals: [
+        { start: 0, end: 176, label: "도입 — 공학과 사회의 관계" },
+        { start: 177, end: 359, label: "근거 1 — 왕립공학원" },
+        { start: 360, end: 651, label: "근거 2 — AI 윤리와 다양성" },
+        { start: 652, end: 905, label: "결론 — 사회 반영의 필수성" }
+      ],
+      vocabulary: [
+        { word: "essential", meaning: "필수적인" },
+        { word: "represent", meaning: "대표하다, 반영하다" },
+        { word: "diversity", meaning: "다양성" },
+        { word: "inclusion", meaning: "포용, 포함" },
+        { word: "ethics", meaning: "윤리" },
+        { word: "underpin", meaning: "떠받치다, 뒷받침하다" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Ex03 문제",
+      items: [
+        {
+          question: "[원문] 다음 글에서 필자가 주장하는 바로 가장 적절한 것은?",
+          options: [
+            "공학자는 기술 발전에 따른 가치관의 변화를 수용해야 한다.",
+            "인공 지능과 기타 공학 분야가 조화를 이루어 발전해야 한다.",
+            "인공 지능 시스템을 개발할 때 사회적 다양성을 반영해야 한다.",
+            "국가의 인공 지능 전략 수립은 사회 구성원의 합의에 기반해야 한다.",
+            "인공 지능 개발이 사회의 각 분야에 미치는 영향을 올바르게 파악해야 한다."
+          ],
+          answer: 2,
+          explanation: "필자는 공학과 AI가 사회에 봉사하려면 사회의 다양성을 이해하고, 참여시키고, 반영해야 한다(society is understood, involved, and represented)고 주장."
+        },
+        {
+          question: "[변형] 밑줄 친 'if a system is not diverse, it is not ethical'이 의미하는 바로 가장 적절한 것은?",
+          options: [
+            "기술 시스템의 보안이 다양한 위협에 대비해야 한다.",
+            "다양한 관점이 반영되지 않은 시스템은 윤리적이지 않다.",
+            "AI 시스템은 다양한 프로그래밍 언어로 개발되어야 한다.",
+            "윤리적 기준은 문화마다 다르므로 통일이 어렵다.",
+            "시스템의 효율성은 다양한 테스트를 거쳐야 보장된다."
+          ],
+          answer: 1,
+          explanation: "Dame Wendy Hall의 발언은 AI 시스템이 사회의 다양성을 반영하지 않으면 윤리적이라 할 수 없다는 뜻."
+        }
+      ]
+    },
+
+    // ================================================================
+    // EXERCISE 04 — 위기 상황에서의 감정 표현
+    // ================================================================
+    {
+      type: "freeform",
+      title: "Ex04 7단계 분석 — 위기와 감정 표현",
+      html: "<table style='width:100%;border-collapse:collapse;font-size:0.92em'><tr style='background:#7c3aed;color:#fff'><th style='padding:10px 14px;text-align:left;width:130px'>단계</th><th style='padding:10px 14px;text-align:left'>분석 내용</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>① Theme</td><td style='padding:10px 14px'>A(위기 시 감정 억제 = 강인함) → B(위기 시 감정 표현 = 적응·성장)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>② Overview</td><td style='padding:10px 14px'>미국적 통념 → 연구 반론 → 감정 공유 촉구 → 기대 효과 + 인용</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>③ Timeline</td><td style='padding:10px 14px'>includes the belief(통념) → Yet(반전) → So(주장) → Plus(추가 근거) → As Mandela put it(인용 결론)</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>④ Title</td><td style='padding:10px 14px'>Share Your Feelings to Overcome Crisis</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑤ Gist</td><td style='padding:10px 14px'>위기 극복을 위해 자신의 감정을 다른 사람과 공유해야 한다</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑥ Main Sentence</td><td style='padding:10px 14px;font-style:italic'>So, whether you're experiencing fear, frustration, anger, despair, or any other emotion, share them with others.</td></tr><tr><td style='padding:10px 14px;font-weight:700;color:#7c3aed'>⑦ Paraphrase</td><td style='padding:10px 14px'>bottling them up = suppressing emotions / emotional release = cathartic expression / in a better space = in an improved mental state</td></tr></table>"
+    },
+    {
+      type: "passage",
+      title: "Ex04 — Emotional Expression in Crisis",
+      content: "The ethos of the American mind includes the belief that people who overcome a crisis are tough and unemotional, almost like the US version of the English expression \"keep a stiff upper lip.\" Yet, the body of research exploring the most productive ways to respond to adversity and stress (which crises have in spades) contradicts this view. The findings indicate that emotional expression (i.e., talking about your feelings rather than bottling them up) is associated with increased adaptation and growth. So, whether you're experiencing fear, frustration, anger, despair, or any other emotion, share them with others. You'll feel better from having an emotional release and feel support from those with whom you share. Plus, the opportunity to process your emotions with a trusted friend will put you in a better space from which to tackle the crisis. As Nelson Mandela put it, \"Live life as though nobody is watching, and express yourself as though everyone is listening.\"",
+      reveals: [
+        { start: 0, end: 190, label: "통념 — 위기 시 감정 억제" },
+        { start: 191, end: 504, label: "반론 — 연구 결과" },
+        { start: 505, end: 718, label: "주장 — 감정 공유 촉구" },
+        { start: 719, end: 973, label: "결론 — 감정 처리의 효과" }
+      ],
+      vocabulary: [
+        { word: "ethos", meaning: "(집단·사회의) 기풍, 정신" },
+        { word: "unemotional", meaning: "감정을 드러내지 않는" },
+        { word: "adversity", meaning: "역경" },
+        { word: "in spades", meaning: "확실히, 충분히" },
+        { word: "bottling up", meaning: "감정을 억누르다" },
+        { word: "adaptation", meaning: "적응" }
+      ]
+    },
+    {
+      type: "questions",
+      title: "Ex04 문제",
+      items: [
+        {
+          question: "[원문] 다음 글에서 필자가 주장하는 바로 가장 적절한 것은?",
+          options: [
+            "신뢰 회복을 위해 내적 강인함과 과묵함을 유지하라.",
+            "위기 극복을 위해 자신의 감정을 다른 사람과 공유하라.",
+            "윤리적 삶을 위해 자신의 도덕 규칙에 충실한 삶을 영위하라.",
+            "상황 대처 능력을 기르기 위해 스트레스를 적정 수준으로 유지하라.",
+            "원만한 인간관계 유지를 위해 지나치게 부정적인 감정 표현을 자제하라."
+          ],
+          answer: 1,
+          explanation: "필자는 미국적 통념(감정 억제 = 강인함)을 연구 결과로 반박하며, 위기 시 감정을 타인과 공유하라고 주장함."
+        },
+        {
+          question: "[변형] 다음 글의 내용과 일치하는 것은?",
+          options: [
+            "미국 문화는 전통적으로 위기 시 감정 표현을 권장해왔다.",
+            "연구 결과에 따르면 감정 억제가 위기 극복에 더 효과적이다.",
+            "감정을 표현하는 것은 적응과 성장에 긍정적으로 연관된다.",
+            "Nelson Mandela는 감정을 숨기는 것이 지도력의 핵심이라 말했다.",
+            "위기 상황에서는 전문 상담사에게만 감정을 표현해야 한다."
+          ],
+          answer: 2,
+          explanation: "지문: emotional expression is associated with increased adaptation and growth. 감정 표현은 적응과 성장에 긍정적 연관."
+        }
+      ]
+    },
+
+    // ================================================================
+    // 문법 슬라이드
+    // ================================================================
+    {
+      type: "grammar",
+      title: "핵심 문법 — 4과 주장 파악",
+      points: [
+        {
+          rule: "It is + 형용사 + that S + (should) V — 당위·필요의 that절 (should 생략 가능)",
+          example: "It is desirable that we develop games that connect to the learning outcomes.",
+          highlight: "It is desirable that we develop"
+        },
+        {
+          rule: "관계대명사 that — 주격, 선행사가 사물",
+          example: "…a valuable tool that could be used to enhance productivity.",
+          highlight: "that"
+        },
+        {
+          rule: "동명사 주어 — 동명사구가 문장의 주어 역할",
+          example: "Incorporating sustainable habits into our lives can be the most fun.",
+          highlight: "Incorporating"
+        },
+        {
+          rule: "whether A or B — 양보/선택의 부사절",
+          example: "So, whether you're experiencing fear, frustration, anger, despair, or any other emotion, share them.",
+          highlight: "whether"
+        },
+        {
+          rule: "관계대명사 whose — 소유격 관계대명사",
+          example: "Dame Wendy Hall, whose review into AI is shaping the UK strategy…",
+          highlight: "whose"
+        }
+      ]
+    },
+
+    // ================================================================
+    // 핵심 문장 슬라이드
+    // ================================================================
+    {
+      type: "keysentence",
+      title: "Key Sentences",
+      sentences: [
+        {
+          en: "It is desirable that we develop games that connect to the learning outcomes we want for our students.",
+          ko: "우리 학생들을 위해 원하는 학습 성과에 연결되는 게임을 개발하는 것이 바람직하다.",
+          grammar_note: "It is desirable that S + V (당위의 that절) + 관계대명사 that"
+        },
+        {
+          en: "By sharing interesting facts or strategies with family, friends, neighbors, or coworkers on how to live more sustainably, we can also spread the impetus for change.",
+          ko: "더 지속 가능하게 사는 방법에 대한 흥미로운 사실이나 전략을 가족, 친구, 이웃, 동료와 나눔으로써, 우리는 변화의 추진력도 확산시킬 수 있다.",
+          grammar_note: "By ~ing (수단/방법) + how to V (의문사 + to부정사)"
+        },
+        {
+          en: "All these simple checks might be frustrating and delay the start of the task, but they are so important for enabling children to gain success.",
+          ko: "이 모든 간단한 점검이 시작을 지연시킬 수 있지만, 아이들이 성공을 거두게 하는 데 매우 중요하다.",
+          grammar_note: "might + V (가능성) + but (대조) + so + adj + for ~ing"
+        },
+        {
+          en: "The findings indicate that emotional expression is associated with increased adaptation and growth.",
+          ko: "연구 결과는 감정 표현이 증가된 적응과 성장과 관련이 있음을 보여준다.",
+          grammar_note: "indicate that S + V (명사절) + be associated with (수동태)"
+        }
+      ]
+    },
+
+    // ================================================================
+    // 토론 활동 슬라이드
+    // ================================================================
+    {
+      type: "freeform",
+      title: "Discussion Activity",
+      html: "<div style='font-size:1.05em;line-height:2.2'><ol><li>Do you think video games can be effective learning tools? Give an example.<br><span style='color:#7c3aed;font-size:0.85em'>비디오 게임이 효과적인 학습 도구가 될 수 있다고 생각하나요? 예를 들어보세요.</span></li><li>How comfortable is your writing environment? What would you change?<br><span style='color:#7c3aed;font-size:0.85em'>여러분의 글쓰기 환경은 얼마나 편안한가요? 무엇을 바꾸고 싶나요?</span></li><li>Why is diversity important in technology development?<br><span style='color:#7c3aed;font-size:0.85em'>기술 개발에서 다양성이 왜 중요할까요?</span></li><li>Do you tend to express or suppress your emotions during difficult times?<br><span style='color:#7c3aed;font-size:0.85em'>어려운 시기에 감정을 표현하는 편인가요, 억누르는 편인가요?</span></li></ol></div>"
+    },
+
+    // ================================================================
+    // 어휘 정리표
+    // ================================================================
+    {
+      type: "freeform",
+      title: "Vocabulary Review",
+      html: "<table style='width:100%;border-collapse:collapse;font-size:0.95em'><thead><tr style='border-bottom:3px solid #7c3aed;text-align:left'><th style='padding:10px 14px'>Word</th><th style='padding:10px 14px'>Meaning</th><th style='padding:10px 14px'>Passage</th></tr></thead><tbody><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>universally</td><td style='padding:10px 14px'>보편적으로</td><td style='padding:10px 14px;color:#475569'>GW</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>enhance</td><td style='padding:10px 14px'>향상하다</td><td style='padding:10px 14px;color:#475569'>GW</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>derail</td><td style='padding:10px 14px'>저해하다, 망치다</td><td style='padding:10px 14px;color:#475569'>GW</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>sustainable</td><td style='padding:10px 14px'>지속 가능한</td><td style='padding:10px 14px;color:#475569'>Ex01</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>impetus</td><td style='padding:10px 14px'>추진력, 자극</td><td style='padding:10px 14px;color:#475569'>Ex01</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>frustrating</td><td style='padding:10px 14px'>좌절감을 주는</td><td style='padding:10px 14px;color:#475569'>Ex02</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>well-being</td><td style='padding:10px 14px'>안녕, 복지</td><td style='padding:10px 14px;color:#475569'>Ex02</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>diversity</td><td style='padding:10px 14px'>다양성</td><td style='padding:10px 14px;color:#475569'>Ex03</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>underpin</td><td style='padding:10px 14px'>떠받치다</td><td style='padding:10px 14px;color:#475569'>Ex03</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>ethos</td><td style='padding:10px 14px'>기풍, 정신</td><td style='padding:10px 14px;color:#475569'>Ex04</td></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:10px 14px;font-weight:700'>adversity</td><td style='padding:10px 14px'>역경</td><td style='padding:10px 14px;color:#475569'>Ex04</td></tr><tr style='border-bottom:1px solid #e2e8f0;background:#f8fafc'><td style='padding:10px 14px;font-weight:700'>adaptation</td><td style='padding:10px 14px'>적응</td><td style='padding:10px 14px;color:#475569'>Ex04</td></tr></tbody></table>"
+    },
+
+    // ================================================================
+    // 빈 화면
+    // ================================================================
+    { type: "blank" }
+  ],
+
+  // 사이드 패널 보조자료
+  resources: [
+    {
+      label: "핵심 단어",
+      type: "vocabulary",
+      items: [
+        { word: "universally", meaning: "보편적으로" },
+        { word: "accomplish", meaning: "이루다" },
+        { word: "enhance", meaning: "향상하다" },
+        { word: "derail", meaning: "저해하다" },
+        { word: "desirable", meaning: "바람직한" },
+        { word: "outcome", meaning: "성과" },
+        { word: "sustainable", meaning: "지속 가능한" },
+        { word: "impetus", meaning: "추진력" },
+        { word: "frustrating", meaning: "좌절감을 주는" },
+        { word: "diversity", meaning: "다양성" },
+        { word: "inclusion", meaning: "포용" },
+        { word: "underpin", meaning: "떠받치다" },
+        { word: "ethos", meaning: "기풍, 정신" },
+        { word: "adversity", meaning: "역경" },
+        { word: "adaptation", meaning: "적응" }
+      ]
+    },
+    {
+      label: "주장 파악 전략",
+      type: "html",
+      content: "<div style='font-size:0.9em;line-height:1.8'><h3 style='color:#7c3aed;margin:0 0 8px'>주장 파악 풀이 전략</h3><ol><li><b>핵심 소재</b>를 반복 어구로 파악</li><li><b>통념 vs 필자 의견</b> 구분<br>→ 전환 표지: Yet, Rather, However, While</li><li><b>결론부</b>에서 주장 확인<br>→ should, must, it is desirable/essential that</li><li>주장 = 필자가 <b>독자에게 촉구하는 행동/태도</b></li></ol><h4 style='color:#7c3aed;margin:12px 0 6px'>주장 파악 vs 요지 파악</h4><table style='width:100%;border-collapse:collapse'><tr style='border-bottom:2px solid #7c3aed'><th style='padding:6px;text-align:left'>구분</th><th style='padding:6px;text-align:left'>주장</th><th style='padding:6px;text-align:left'>요지</th></tr><tr style='border-bottom:1px solid #e2e8f0'><td style='padding:6px'>초점</td><td style='padding:6px'>행동 촉구 (~해야 한다)</td><td style='padding:6px'>핵심 메시지 (~이다)</td></tr><tr><td style='padding:6px'>선지 형태</td><td style='padding:6px'>~해야 한다/~하라</td><td style='padding:6px'>~이다/~한다</td></tr></table></div>"
+    }
+  ]
+}); })();
+
+</script>
+
+<script>
+// ===== STATE =====
+const STATE = {
+  currentSlide: 0,
+  totalSlides: 0,
+  drawingMode: 'navigate',
+  penColor: '#e11d48',
+  penWidth: 4,
+  isDrawing: false,
+  currentStroke: null,
+  slideDrawings: {},
+  undoStack: {},
+  revealState: {},
+  toolbarVisible: true,
+  toolbarTimer: null,
+  panelOpen: false,
+  fullscreen: false,
+  fontSize: 32,
+  bgIndex: 0,
+  lesson: null,
+  blackout: false,
+  textHighlighting: false
+};
+
+const BACKGROUNDS = ['white', 'grid', 'lined', 'dark', 'sepia'];
+const TOOL_LABELS = { navigate: '포인터', pen: '펜', highlighter: '형광펜', eraser: '지우개' };
+const OPTION_LABELS = ['①', '②', '③', '④', '⑤'];
+
+// ===== DOM REFS =====
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+const app = $('#app-container');
+const toolbar = $('#toolbar');
+const slideTrack = $('#slide-track');
+const slideContainer = $('#slide-container');
+const canvas = $('#drawing-canvas');
+const ctx = canvas.getContext('2d');
+const sidePanel = $('#side-panel');
+const blackoutEl = $('#blackout');
+
+// ===== INITIALIZATION =====
+function init() {
+  if (!STATE.lesson) STATE.lesson = window.LESSON_DATA || createFallbackLesson();
+  const s = STATE.lesson.settings || {};
+  STATE.fontSize = s.defaultFontSize || 32;
+  STATE.bgIndex = BACKGROUNDS.indexOf(s.defaultBg || 'white');
+  if (STATE.bgIndex < 0) STATE.bgIndex = 0;
+  applyBackground();
+  slideContainer.style.fontSize = STATE.fontSize + 'px';
+
+  renderAllSlides();
+  initPassageReveals();
+  renderPanel();
+  updateUI();
+  setupCanvas();
+  setupEvents();
+
+  $('#lesson-title-bar').textContent = STATE.lesson.title || '';
+  $('#status-lesson').textContent = STATE.lesson.title || '';
+}
+
+function createFallbackLesson() {
+  return {
+    title: 'Empty Lesson',
+    settings: {},
+    slides: [{ type: 'blank' }],
+    resources: []
+  };
+}
+
+// ===== SLIDE RENDERERS =====
+function renderAllSlides() {
+  slideTrack.innerHTML = '';
+  const slides = STATE.lesson.slides || [];
+  STATE.totalSlides = slides.length;
+  slides.forEach((data, i) => {
+    const el = document.createElement('div');
+    el.className = 'slide';
+    el.dataset.index = i;
+    const renderer = RENDERERS[data.type] || RENDERERS.freeform;
+    renderer(el, data, i);
+    slideTrack.appendChild(el);
+  });
+}
+
+// Wrap text into sentence-level spans for click-to-underline
+function wrapSentences(escapedText) {
+  if (!escapedText || !escapedText.trim()) return escapedText;
+  var result = escapedText.replace(/([.!?])\s+(?=[A-Z])/g, '$1</span> <span class="sentence">');
+  return '<span class="sentence">' + result + '</span>';
+}
+
+const RENDERERS = {
+  title(el, data) {
+    el.classList.add('slide-title-page');
+    el.innerHTML = `
+      <h1>${esc(data.title || '')}</h1>
+      <div class="accent-line"></div>
+      ${data.subtitle ? `<div class="subtitle">${esc(data.subtitle)}</div>` : ''}
+    `;
+  },
+
+  passage(el, data, idx) {
+    let html = `<div class="slide-header">${esc(data.title || 'Passage')}</div>`;
+    let content = data.content || '';
+    const sortedReveals = [...(data.reveals || [])].sort((a, b) => a.start - b.start);
+    let result = '';
+    let lastEnd = 0;
+    sortedReveals.forEach((r, ri) => {
+      result += wrapSentences(esc(content.slice(lastEnd, r.start)));
+      result += `<span class="reveal-target" data-reveal-idx="${ri}" data-slide="${idx}">` +
+        `<span class="reveal-label">${esc(r.label || '')}</span>` +
+        wrapSentences(esc(content.slice(r.start, r.end))) + `</span>`;
+      lastEnd = r.end;
+    });
+    result += wrapSentences(esc(content.slice(lastEnd)));
+
+    let vocabHtml = '';
+    if (data.vocabulary && data.vocabulary.length) {
+      vocabHtml += '<div class="vocab-badges">';
+      data.vocabulary.forEach(v => {
+        vocabHtml += `<span class="vocab-badge"><b>${esc(v.word)}</b> ${esc(v.meaning)}</span>`;
+      });
+      vocabHtml += '</div>';
+    }
+
+    html += `<div class="passage-split">` +
+      `<div class="passage-left"><div class="passage-text">${result}</div>${vocabHtml}</div>` +
+      `<div class="passage-resize-handle" data-slide="${idx}"></div>` +
+      `<div class="passage-notes" data-slide="${idx}">` +
+        `<div class="passage-notes-header"><span>Notes</span></div>` +
+        `<div class="passage-notes-body">` +
+          `<textarea placeholder="수업 중 메모를 입력하세요..." data-notes-slide="${idx}"></textarea>` +
+        `</div>` +
+      `</div>` +
+    `</div>`;
+
+    el.innerHTML = html;
+  },
+
+  questions(el, data, idx) {
+    let html = `<div class="slide-header">${esc(data.title || 'Questions')}</div>`;
+    (data.items || []).forEach((q, qi) => {
+      html += `<div class="question-block" data-q="${qi}" data-slide="${idx}">`;
+      html += `<div class="q-num">Q${qi + 1}</div>`;
+      html += `<div class="q-text">${esc(q.question || '')}</div>`;
+      html += '<div class="q-options">';
+      (q.options || []).forEach((opt, oi) => {
+        html += `<div class="q-option" data-answer="${q.answer}" data-opt="${oi}" data-slide="${idx}" data-q="${qi}">` +
+          `<span class="q-label">${OPTION_LABELS[oi] || (oi+1)}</span> ${esc(opt)}</div>`;
+      });
+      html += '</div>';
+      if (q.explanation) {
+        html += `<div class="q-explanation" data-slide="${idx}" data-q="${qi}">${esc(q.explanation)}</div>`;
+      }
+      html += '</div>';
+    });
+    el.innerHTML = html;
+
+    // Click handler for answer reveal
+    setTimeout(() => {
+      el.querySelectorAll('.q-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (STATE.drawingMode !== 'navigate') return;
+          const answer = parseInt(opt.dataset.answer);
+          const optIdx = parseInt(opt.dataset.opt);
+          const block = opt.closest('.question-block');
+          // Highlight correct answer
+          block.querySelectorAll('.q-option').forEach((o, i) => {
+            if (i === answer) o.classList.add('correct');
+          });
+          // Show explanation
+          const expl = block.querySelector('.q-explanation');
+          if (expl) expl.classList.add('shown');
+        });
+      });
+    }, 0);
+  },
+
+  grammar(el, data) {
+    let html = `<div class="slide-header">${esc(data.title || 'Grammar')}</div>`;
+    (data.points || []).forEach(p => {
+      let ex = esc(p.example || '');
+      if (p.highlight) {
+        const hlEsc = esc(p.highlight);
+        ex = ex.replace(new RegExp(`(${escRegex(hlEsc)})`, 'gi'), '<span class="hl">$1</span>');
+      }
+      html += `<div class="grammar-point">
+        <div class="rule">${esc(p.rule || '')}</div>
+        <div class="example">${ex}</div>
+      </div>`;
+    });
+    el.innerHTML = html;
+  },
+
+  keysentence(el, data) {
+    let html = `<div class="slide-header">${esc(data.title || 'Key Sentences')}</div>`;
+    (data.sentences || []).forEach(s => {
+      html += `<div class="ks-block">
+        <div class="ks-en">${esc(s.en || '')}</div>
+        <div class="ks-ko">${esc(s.ko || '')}</div>
+        ${s.grammar_note ? `<span class="ks-note">${esc(s.grammar_note)}</span>` : ''}
+      </div>`;
+    });
+    el.innerHTML = html;
+  },
+
+  freeform(el, data) {
+    el.innerHTML = `<div class="slide-header">${esc(data.title || '')}</div>
+      <div class="freeform-content">${data.html || ''}</div>`;
+  },
+
+  image(el, data) {
+    el.innerHTML = `<div class="slide-header">${esc(data.title || '')}</div>
+      <img class="slide-image" src="${esc(data.src || '')}" alt="${esc(data.caption || '')}"
+        style="object-fit:${data.fit || 'contain'}" onerror="this.alt='이미지를 찾을 수 없습니다'">
+      ${data.caption ? `<div class="image-caption">${esc(data.caption)}</div>` : ''}`;
+  },
+
+  blank(el) {
+    el.classList.add('slide-blank');
+  }
+};
+
+// ===== SIDE PANEL =====
+function renderPanel() {
+  const body = $('#panel-body');
+  const resources = STATE.lesson.resources || [];
+  if (!resources.length) {
+    body.innerHTML = '<p style="color:var(--text-muted);font-size:14px">등록된 자료가 없습니다.</p>';
+    return;
+  }
+  let html = '';
+  resources.forEach(r => {
+    html += `<div class="panel-section"><div class="panel-section-title">${esc(r.label || '')}</div>`;
+    if (r.type === 'vocabulary' && r.items) {
+      r.items.forEach(v => {
+        html += `<div class="panel-vocab-item"><span class="panel-vocab-word">${esc(v.word)}</span><span class="panel-vocab-meaning">${esc(v.meaning)}</span></div>`;
+      });
+    } else if (r.type === 'html') {
+      html += r.content || '';
+    } else if (r.type === 'image') {
+      html += `<img src="${esc(r.src || '')}" style="max-width:100%;border-radius:8px" alt="">`;
+    }
+    html += '</div>';
+  });
+  body.innerHTML = html;
+}
+
+// ===== NAVIGATION =====
+function goToSlide(index) {
+  if (index < 0 || index >= STATE.totalSlides) return;
+  saveNotes();
+  STATE.currentSlide = index;
+  slideTrack.style.transform = `translateX(-${index * 100}%)`;
+  redrawCanvas(index);
+  updateUI();
+}
+function nextSlide() { goToSlide(STATE.currentSlide + 1); }
+function prevSlide() { goToSlide(STATE.currentSlide - 1); }
+
+// ===== REVEAL =====
+// 초기화: 첫 2개 reveal target만 자동 공개, 예시 등 나머지는 블러
+function initPassageReveals() {
+  STATE.lesson.slides.forEach((data, idx) => {
+    if (data.type !== 'passage') return;
+    const targets = slideTrack.querySelectorAll(`.reveal-target[data-slide="${idx}"]`);
+    if (targets.length === 0) return;
+    // 첫 2개만 공개 (예시 부분 포함 나머지는 블러 유지)
+    for (let i = 0; i < Math.min(2, targets.length); i++) {
+      targets[i].classList.add('revealed');
+    }
+  });
+}
+
+function revealNext() {
+  const idx = STATE.currentSlide;
+  const targets = slideTrack.querySelectorAll(`.reveal-target[data-slide="${idx}"]`);
+  // 아직 공개 안 된 다음 타겟을 찾아서 공개
+  for (let i = 0; i < targets.length; i++) {
+    if (!targets[i].classList.contains('revealed')) {
+      targets[i].classList.add('revealed');
+      return;
+    }
+  }
+}
+
+// 2-F 버튼: 블러된 중간 부분 전체 공개
+function revealMiddle() {
+  const idx = STATE.currentSlide;
+  const targets = slideTrack.querySelectorAll(`.reveal-target[data-slide="${idx}"]:not(.revealed)`);
+  targets.forEach(t => t.classList.add('revealed'));
+}
+
+// ===== PASSAGE NOTES RESIZE =====
+function initPassageResize() {
+  const handles = slideTrack.querySelectorAll('.passage-resize-handle');
+  handles.forEach(handle => {
+    handle.addEventListener('pointerdown', startResize);
+  });
+}
+
+function startResize(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const handle = e.currentTarget;
+  handle.classList.add('dragging');
+  const split = handle.closest('.passage-split');
+  const notes = split.querySelector('.passage-notes');
+  const startX = e.clientX;
+  const startWidth = notes.offsetWidth;
+
+  function onMove(ev) {
+    ev.preventDefault();
+    const delta = startX - ev.clientX;
+    const newW = Math.max(180, Math.min(split.offsetWidth * 0.6, startWidth + delta));
+    notes.style.width = newW + 'px';
+  }
+  function onUp() {
+    handle.classList.remove('dragging');
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+  }
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+}
+
+// 슬라이드 간 노트 내용 보존
+const notesStore = {};
+function saveNotes() {
+  slideTrack.querySelectorAll('textarea[data-notes-slide]').forEach(ta => {
+    const key = ta.dataset.notesSlide;
+    if (ta.value) notesStore[key] = ta.value;
+  });
+}
+function restoreNotes() {
+  slideTrack.querySelectorAll('textarea[data-notes-slide]').forEach(ta => {
+    const key = ta.dataset.notesSlide;
+    if (notesStore[key]) ta.value = notesStore[key];
+  });
+}
+
+function revealAll() {
+  const idx = STATE.currentSlide;
+  const targets = slideTrack.querySelectorAll(`.reveal-target[data-slide="${idx}"]`);
+  targets.forEach(t => t.classList.add('revealed'));
+}
+
+// ===== DRAWING ENGINE =====
+function setupCanvas() {
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+}
+
+function resizeCanvas() {
+  const rect = slideContainer.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  redrawCanvas(STATE.currentSlide);
+}
+
+function getPointerPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top, pressure: e.pressure || 0.5 };
+}
+
+function onPointerDown(e) {
+  if (STATE.drawingMode === 'navigate') return;
+  if (STATE.drawingMode === 'clear') return;
+  e.preventDefault();
+  const pos = getPointerPos(e);
+
+  if (STATE.drawingMode === 'eraser') {
+    handleEraser(pos.x, pos.y);
+    return;
+  }
+
+  // Text-following highlighter: if highlighter tool over passage text, apply CSS highlight
+  if (STATE.drawingMode === 'highlighter') {
+    const hitEl = hitTestThrough(e.clientX, e.clientY);
+    if (hitEl) {
+      const rt = hitEl.closest('.reveal-target.revealed');
+      if (rt) {
+        rt.classList.add('text-hl');
+        STATE.textHighlighting = true;
+        return;
+      }
+      const ptxt = hitEl.closest('.passage-text');
+      if (ptxt) {
+        STATE.textHighlighting = true;
+        return;
+      }
+    }
+  }
+
+  STATE.textHighlighting = false;
+  STATE.isDrawing = true;
+  STATE.currentStroke = {
+    points: [pos],
+    color: STATE.penColor,
+    width: STATE.drawingMode === 'highlighter' ? STATE.penWidth * 5 : STATE.penWidth,
+    tool: STATE.drawingMode,
+    slideIndex: STATE.currentSlide
+  };
+}
+
+function onPointerMove(e) {
+  // Text-following highlighter: highlight reveal targets as pointer drags over them
+  if (STATE.textHighlighting && STATE.drawingMode === 'highlighter') {
+    e.preventDefault();
+    const hitEl = hitTestThrough(e.clientX, e.clientY);
+    if (hitEl) {
+      const rt = hitEl.closest('.reveal-target.revealed');
+      if (rt) rt.classList.add('text-hl');
+    }
+    return;
+  }
+  if (!STATE.isDrawing) return;
+  e.preventDefault();
+  const pos = getPointerPos(e);
+  STATE.currentStroke.points.push(pos);
+  const pts = STATE.currentStroke.points;
+  if (pts.length >= 2) {
+    drawSegment(pts[pts.length - 2], pts[pts.length - 1], STATE.currentStroke);
+  }
+}
+
+function onPointerUp(e) {
+  if (STATE.textHighlighting) { STATE.textHighlighting = false; return; }
+  if (!STATE.isDrawing) return;
+  STATE.isDrawing = false;
+  const idx = STATE.currentSlide;
+  if (!STATE.slideDrawings[idx]) STATE.slideDrawings[idx] = [];
+  STATE.slideDrawings[idx].push(STATE.currentStroke);
+  STATE.undoStack[idx] = [];
+  STATE.currentStroke = null;
+}
+
+function drawSegment(from, to, stroke) {
+  ctx.save();
+  if (stroke.tool === 'highlighter') {
+    ctx.globalAlpha = 0.25;
+    ctx.lineCap = 'square';
+    ctx.lineJoin = 'miter';
+  } else {
+    ctx.globalAlpha = 1.0;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }
+  ctx.strokeStyle = stroke.color;
+  ctx.lineWidth = stroke.width;
+  ctx.beginPath();
+  ctx.moveTo(from.x, from.y);
+  ctx.lineTo(to.x, to.y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawFullStroke(stroke) {
+  if (stroke.points.length < 2) return;
+  for (let i = 1; i < stroke.points.length; i++) {
+    drawSegment(stroke.points[i - 1], stroke.points[i], stroke);
+  }
+}
+
+function redrawCanvas(slideIndex) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const strokes = STATE.slideDrawings[slideIndex] || [];
+  strokes.forEach(s => drawFullStroke(s));
+}
+
+function handleEraser(x, y) {
+  const strokes = STATE.slideDrawings[STATE.currentSlide];
+  if (!strokes || !strokes.length) return;
+  const THRESHOLD = 20;
+  for (let i = strokes.length - 1; i >= 0; i--) {
+    for (const pt of strokes[i].points) {
+      if (Math.hypot(pt.x - x, pt.y - y) < THRESHOLD) {
+        const removed = strokes.splice(i, 1)[0];
+        if (!STATE.undoStack[STATE.currentSlide]) STATE.undoStack[STATE.currentSlide] = [];
+        STATE.undoStack[STATE.currentSlide].push(removed);
+        redrawCanvas(STATE.currentSlide);
+        return;
+      }
+    }
+  }
+}
+
+function clearDrawing() {
+  const idx = STATE.currentSlide;
+  const strokes = STATE.slideDrawings[idx];
+  if (strokes && strokes.length) {
+    STATE.undoStack[idx] = strokes.slice();
+    STATE.slideDrawings[idx] = [];
+    redrawCanvas(idx);
+  }
+}
+
+function undo() {
+  const idx = STATE.currentSlide;
+  const strokes = STATE.slideDrawings[idx];
+  if (!strokes || !strokes.length) return;
+  const removed = strokes.pop();
+  if (!STATE.undoStack[idx]) STATE.undoStack[idx] = [];
+  STATE.undoStack[idx].push(removed);
+  redrawCanvas(idx);
+}
+
+function redo() {
+  const idx = STATE.currentSlide;
+  const stack = STATE.undoStack[idx];
+  if (!stack || !stack.length) return;
+  const restored = stack.pop();
+  if (!STATE.slideDrawings[idx]) STATE.slideDrawings[idx] = [];
+  STATE.slideDrawings[idx].push(restored);
+  redrawCanvas(idx);
+}
+
+// ===== TOOL MANAGEMENT =====
+function setTool(tool) {
+  if (tool === 'clear') {
+    clearDrawing();
+    return;
+  }
+  STATE.drawingMode = tool;
+  canvas.className = tool === 'navigate' ? 'mode-navigate' : (tool === 'eraser' ? 'mode-eraser' : '');
+
+  $$('[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
+  updateUI();
+}
+
+function setColor(color) {
+  STATE.penColor = color;
+  $$('.color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === color));
+  if (STATE.drawingMode === 'navigate' || STATE.drawingMode === 'eraser') {
+    setTool('pen');
+  }
+}
+
+function setPenWidth(w) {
+  STATE.penWidth = parseInt(w);
+  $$('.width-btn').forEach(b => b.classList.toggle('active', b.dataset.width === String(w)));
+}
+
+// ===== BACKGROUND & FONT =====
+function cycleBackground() {
+  STATE.bgIndex = (STATE.bgIndex + 1) % BACKGROUNDS.length;
+  applyBackground();
+}
+
+function applyBackground() {
+  BACKGROUNDS.forEach(b => app.classList.remove('theme-' + b));
+  app.classList.add('theme-' + BACKGROUNDS[STATE.bgIndex]);
+}
+
+function adjustFontSize(delta) {
+  STATE.fontSize = Math.max(18, Math.min(60, STATE.fontSize + delta));
+  slideContainer.style.fontSize = STATE.fontSize + 'px';
+}
+
+// ===== FULLSCREEN =====
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    app.requestFullscreen().catch(() => {});
+    STATE.fullscreen = true;
+  } else {
+    document.exitFullscreen().catch(() => {});
+    STATE.fullscreen = false;
+  }
+}
+
+// ===== PANEL =====
+function togglePanel() {
+  STATE.panelOpen = !STATE.panelOpen;
+  sidePanel.classList.toggle('open', STATE.panelOpen);
+}
+
+// ===== BLACKOUT =====
+function toggleBlackout() {
+  STATE.blackout = !STATE.blackout;
+  blackoutEl.classList.toggle('active', STATE.blackout);
+}
+
+// ===== TOOLBAR AUTO-HIDE =====
+function resetToolbarTimer() {
+  if (!STATE.toolbarVisible) {
+    toolbar.classList.remove('hidden');
+    STATE.toolbarVisible = true;
+  }
+  clearTimeout(STATE.toolbarTimer);
+  STATE.toolbarTimer = setTimeout(() => {
+    if (STATE.drawingMode !== 'navigate') return;
+    toolbar.classList.add('hidden');
+    STATE.toolbarVisible = false;
+  }, 6000);
+}
+
+// ===== UI UPDATE =====
+function updateUI() {
+  $('#slide-counter').textContent = `${STATE.currentSlide + 1} / ${STATE.totalSlides}`;
+  $('#status-slide').textContent = `Slide ${STATE.currentSlide + 1}/${STATE.totalSlides}`;
+  const toolName = TOOL_LABELS[STATE.drawingMode] || STATE.drawingMode;
+  const extra = STATE.drawingMode === 'pen' || STATE.drawingMode === 'highlighter' ? ` (${STATE.penWidth}px)` : '';
+  $('#status-tool').textContent = toolName + extra;
+}
+
+// ===== EVENTS =====
+function setupEvents() {
+  // Pointer events on canvas
+  canvas.addEventListener('pointerdown', onPointerDown);
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerup', onPointerUp);
+  canvas.addEventListener('pointerleave', onPointerUp);
+
+  // Keyboard
+  document.addEventListener('keydown', handleKey);
+
+  // Toolbar buttons
+  $$('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+  $$('.color-dot').forEach(d => d.addEventListener('click', () => setColor(d.dataset.color)));
+  $$('.width-btn').forEach(b => b.addEventListener('click', () => setPenWidth(b.dataset.width)));
+
+  $('#btn-prev').addEventListener('click', prevSlide);
+  $('#btn-next').addEventListener('click', nextSlide);
+  $('#btn-font-up').addEventListener('click', () => adjustFontSize(2));
+  $('#btn-font-down').addEventListener('click', () => adjustFontSize(-2));
+  $('#btn-bg').addEventListener('click', cycleBackground);
+  $('#btn-reveal').addEventListener('click', revealNext);
+  $('#btn-reveal-middle').addEventListener('click', revealMiddle);
+  $('#btn-panel').addEventListener('click', togglePanel);
+  $('#btn-fullscreen').addEventListener('click', toggleFullscreen);
+  $('#panel-close-btn').addEventListener('click', togglePanel);
+
+  // Nav touch zones
+  $('#nav-prev').addEventListener('click', prevSlide);
+  $('#nav-next').addEventListener('click', nextSlide);
+
+  // Blackout dismiss
+  blackoutEl.addEventListener('click', toggleBlackout);
+
+  // Toolbar hover reset
+  toolbar.addEventListener('mouseenter', resetToolbarTimer);
+  toolbar.addEventListener('touchstart', resetToolbarTimer, { passive: true });
+  slideContainer.addEventListener('mousemove', resetToolbarTimer);
+
+  // Passage click: sentence underline + reveal highlight
+  slideTrack.addEventListener('click', (e) => {
+    if (STATE.drawingMode !== 'navigate') return;
+    // Sentence click-to-underline (works on revealed text)
+    const sent = e.target.closest('.sentence');
+    if (sent) {
+      const parentRt = sent.closest('.reveal-target');
+      if (!parentRt || parentRt.classList.contains('revealed')) {
+        sent.classList.toggle('sentence-active');
+        e.stopPropagation();
+        return;
+      }
+    }
+    // Reveal target click
+    const rt = e.target.closest('.reveal-target');
+    if (!rt) return;
+    if (STATE.lesson.settings && STATE.lesson.settings.revealMode === 'individual') {
+      rt.classList.toggle('revealed');
+      return;
+    }
+    if (rt.classList.contains('revealed')) {
+      rt.classList.toggle('text-hl');
+    }
+  });
+
+  // Notes textarea: 키보드 이벤트 전파 차단 (슬라이드 전환 방지)
+  slideTrack.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'TEXTAREA') e.stopPropagation();
+  }, true);
+
+  // Passage notes resize handles
+  initPassageResize();
+  restoreNotes();
+
+  // Fullscreen change
+  document.addEventListener('fullscreenchange', () => {
+    STATE.fullscreen = !!document.fullscreenElement;
+  });
+}
+
+function handleKey(e) {
+  // Blackout: any key dismisses
+  if (STATE.blackout && e.key !== 'F5') {
+    e.preventDefault();
+    toggleBlackout();
+    return;
+  }
+
+  const key = e.key;
+
+  // Navigation
+  if (key === 'PageDown' || key === 'ArrowRight' || (key === ' ' && !e.shiftKey)) {
+    e.preventDefault(); nextSlide(); resetToolbarTimer(); return;
+  }
+  if (key === 'PageUp' || key === 'ArrowLeft') {
+    e.preventDefault(); prevSlide(); resetToolbarTimer(); return;
+  }
+
+  // Reveal
+  if (key === 'r' || key === 'R') {
+    if (!e.ctrlKey && !e.metaKey) { e.preventDefault(); revealNext(); return; }
+  }
+  // Reveal all
+  if (key === 'a' || key === 'A') {
+    if (e.shiftKey && !e.ctrlKey) { e.preventDefault(); revealAll(); return; }
+  }
+
+  // Background
+  if ((key === 'b' || key === 'B') && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault(); cycleBackground(); return;
+  }
+
+  // Blackout
+  if (key === '.') { e.preventDefault(); toggleBlackout(); return; }
+
+  // Font size
+  if (key === '=' || key === '+') { e.preventDefault(); adjustFontSize(2); return; }
+  if (key === '-' || key === '_') { e.preventDefault(); adjustFontSize(-2); return; }
+
+  // Undo/Redo
+  if ((e.ctrlKey || e.metaKey) && (key === 'z' || key === 'Z')) {
+    e.preventDefault();
+    if (e.shiftKey) redo(); else undo();
+    return;
+  }
+
+  // Escape
+  if (key === 'Escape') {
+    if ($('#lesson-modal').classList.contains('open')) { closeLessonModal(); return; }
+    if (STATE.panelOpen) { togglePanel(); return; }
+    if (STATE.drawingMode !== 'navigate') { setTool('navigate'); return; }
+    if (STATE.fullscreen) { toggleFullscreen(); return; }
+  }
+
+  // Fullscreen
+  if (key === 'F11') { e.preventDefault(); toggleFullscreen(); return; }
+  if (key === 'F5') { e.preventDefault(); toggleFullscreen(); return; }
+
+  // Lesson Manager
+  if ((key === 'l' || key === 'L') && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault(); openLessonModal(); return;
+  }
+
+  // Tool shortcuts
+  if (key === '1') { setTool('navigate'); return; }
+  if (key === '2') { setTool('pen'); return; }
+  if (key === '3') { setTool('highlighter'); return; }
+  if (key === '4') { setTool('eraser'); return; }
+
+  resetToolbarTimer();
+}
+
+// ===== UTILITIES =====
+// Hit-test through the canvas overlay to find elements underneath
+function hitTestThrough(x, y) {
+  canvas.style.pointerEvents = 'none';
+  const el = document.elementFromPoint(x, y);
+  canvas.style.pointerEvents = '';
+  return el;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+function escRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ===== LESSON MANAGER =====
+const STORAGE_KEY = 'wb_lessons';
+const CURRENT_KEY = 'wb_current';
+
+function getLessonStore() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
+}
+function saveLessonStore(store) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch(e) { /* localStorage unavailable */ }
+}
+function setCurrentLessonId(id) {
+  try { localStorage.setItem(CURRENT_KEY, id); } catch(e) { /* localStorage unavailable */ }
+}
+function getCurrentLessonId() {
+  try { return localStorage.getItem(CURRENT_KEY) || ''; } catch(e) { return ''; }
+}
+
+function parseLessonInput(text) {
+  text = text.trim();
+  // Strip window.LESSON_DATA = ... wrapper
+  const m = text.match(/(?:window\.)?LESSON_DATA\s*=\s*([\s\S]+?);?\s*$/);
+  if (m) text = m[1];
+  // Try JSON parse
+  try { return JSON.parse(text); } catch {}
+  // Try eval as JS object literal
+  try { return (new Function('return (' + text + ')'))(); } catch {}
+  return null;
+}
+
+function loadLessonData(data) {
+  STATE.lesson = data;
+  const s = data.settings || {};
+  STATE.fontSize = s.defaultFontSize || 32;
+  STATE.bgIndex = BACKGROUNDS.indexOf(s.defaultBg || 'white');
+  if (STATE.bgIndex < 0) STATE.bgIndex = 0;
+  STATE.currentSlide = 0;
+  STATE.slideDrawings = {};
+  STATE.undoStack = {};
+  STATE.revealState = {};
+  Object.keys(notesStore).forEach(k => delete notesStore[k]);
+  // Close side panel if open
+  if (STATE.panelOpen) { sidePanel.classList.remove('open'); STATE.panelOpen = false; }
+  applyBackground();
+  slideContainer.style.fontSize = STATE.fontSize + 'px';
+  renderAllSlides();
+  initPassageReveals();
+  renderPanel();
+  setupCanvas();
+  initPassageResize();
+  restoreNotes();
+  slideTrack.style.transform = 'translateX(0)';
+  updateUI();
+  $('#lesson-title-bar').textContent = data.title || '';
+  $('#status-lesson').textContent = data.title || '';
+}
+
+function lmToast(msg) {
+  const t = $('#lm-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function openLessonModal() {
+  const modal = $('#lesson-modal');
+  modal.classList.add('open');
+  // Refresh saved list
+  renderSavedList();
+  // Fill edit tab with current lesson
+  $('#lm-edit').value = JSON.stringify(STATE.lesson, null, 2);
+  // Activate first tab
+  activateLmTab('load');
+}
+
+function closeLessonModal() {
+  $('#lesson-modal').classList.remove('open');
+}
+
+function activateLmTab(tab) {
+  $$('.lm-tab').forEach(t => t.classList.toggle('active', t.dataset.lmTab === tab));
+  $$('.lm-section').forEach(s => s.classList.remove('active'));
+  $(`#lm-sec-${tab}`).classList.add('active');
+}
+
+function renderSavedList() {
+  const store = getLessonStore();
+  const list = $('#lm-saved-list');
+  const keys = Object.keys(store).sort((a, b) => (store[b].savedAt || 0) - (store[a].savedAt || 0));
+  if (!keys.length) {
+    list.innerHTML = '<div class="lm-empty">저장된 수업이 없습니다.<br>새 수업을 붙여넣기해서 추가하세요.</div>';
+    return;
+  }
+  const currentId = getCurrentLessonId();
+  list.innerHTML = keys.map(k => {
+    const item = store[k];
+    const d = item.savedAt ? new Date(item.savedAt) : null;
+    const dateStr = d ? `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}` : '';
+    const slides = (item.data && item.data.slides && item.data.slides.length) || 0;
+    const isCurrent = k === currentId;
+    return `<li${isCurrent ? ' style="background:rgba(124,58,237,0.08)"' : ''}>
+      <div class="lm-list-info" data-lesson-id="${esc(k)}">
+        <div class="lm-list-title">${isCurrent ? '▶ ' : ''}${esc((item.data && item.data.title) || k)}</div>
+        <div class="lm-list-meta">${item.source === 'library' ? '📁 ' : ''}${slides}개 슬라이드 · ${dateStr}</div>
+      </div>
+      <div class="lm-list-actions">
+        <button class="lm-list-btn delete" data-delete-id="${esc(k)}" title="삭제">🗑</button>
+      </div>
+    </li>`;
+  }).join('');
+
+  // Click to load
+  list.querySelectorAll('.lm-list-info').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.lessonId;
+      const item = getLessonStore()[id];
+      if (item && item.data) {
+        loadLessonData(item.data);
+        setCurrentLessonId(id);
+        closeLessonModal();
+        lmToast('✅ "' + (item.data.title || id) + '" 로드 완료');
+      }
+    });
+  });
+  // Delete
+  list.querySelectorAll('[data-delete-id]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.deleteId;
+      const s = getLessonStore();
+      delete s[id];
+      saveLessonStore(s);
+      if (getCurrentLessonId() === id) setCurrentLessonId('');
+      renderSavedList();
+      lmToast('삭제됨');
+    });
+  });
+}
+
+function setupLessonManager() {
+  $('#btn-lesson-mgr').addEventListener('click', openLessonModal);
+  $('#lm-close').addEventListener('click', closeLessonModal);
+  $('#lesson-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeLessonModal();
+  });
+
+  // Tabs
+  $$('.lm-tab').forEach(t => {
+    t.addEventListener('click', () => activateLmTab(t.dataset.lmTab));
+  });
+
+  // Load & Save
+  $('#lm-btn-load').addEventListener('click', () => {
+    const text = $('#lm-paste').value;
+    if (!text.trim()) { lmToast('⚠️ 데이터를 붙여넣으세요'); return; }
+    const data = parseLessonInput(text);
+    if (!data || !data.slides) { lmToast('❌ 파싱 실패 — 데이터 형식을 확인하세요'); return; }
+    const id = data.title || ('수업_' + Date.now());
+    const store = getLessonStore();
+    store[id] = { data, savedAt: Date.now() };
+    saveLessonStore(store);
+    setCurrentLessonId(id);
+    loadLessonData(data);
+    closeLessonModal();
+    $('#lm-paste').value = '';
+    lmToast('✅ "' + (data.title || '새 수업') + '" 저장 & 로드 완료');
+  });
+
+  // Edit save
+  $('#lm-btn-save-edit').addEventListener('click', () => {
+    const text = $('#lm-edit').value;
+    const data = parseLessonInput(text);
+    if (!data || !data.slides) { lmToast('❌ JSON 파싱 실패'); return; }
+    const id = data.title || getCurrentLessonId() || ('수업_' + Date.now());
+    const store = getLessonStore();
+    store[id] = { data, savedAt: Date.now() };
+    saveLessonStore(store);
+    setCurrentLessonId(id);
+    loadLessonData(data);
+    closeLessonModal();
+    lmToast('✅ 수정 저장 완료');
+  });
+
+  // Copy
+  $('#lm-btn-copy').addEventListener('click', () => {
+    const ta = $('#lm-edit');
+    ta.select();
+    document.execCommand('copy');
+    lmToast('📋 클립보드에 복사됨');
+  });
+
+  // Keyboard: L to open
+  // (added in handleKey)
+
+  // Prevent keyboard shortcuts when modal textarea is focused
+  $('#lesson-modal').addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'TEXTAREA') e.stopPropagation();
+  }, true);
+}
+
+// ===== LESSON NAV DROPDOWN =====
+function extractChapter(title) {
+  if (!title) return '기타';
+  // Match patterns: Ch3, Chapter 3, L3, Lesson 3, 3과, Unit 3, etc.
+  const m = title.match(/(?:ch(?:apter)?|l(?:esson)?|unit|과)\s*(\d+)/i)
+    || title.match(/(\d+)\s*과/);
+  if (m) return (m[0].match(/과/) ? m[1] + '과' : m[0]).replace(/\s+/g, ' ');
+  return null;
+}
+
+function renderLessonNav() {
+  const dd = $('#lesson-nav-dropdown');
+  const store = getLessonStore();
+  const keys = Object.keys(store).sort((a, b) => (store[a].savedAt || 0) - (store[b].savedAt || 0));
+  const currentId = getCurrentLessonId();
+
+  if (keys.length === 0) {
+    dd.innerHTML = '<div class="lnav-empty">저장된 수업이 없습니다.<br>📚 버튼으로 수업을 추가하세요.</div>';
+    dd.innerHTML += '<div class="lnav-footer"><button id="lnav-manage">📚 수업 관리 열기</button></div>';
+    dd.querySelector('#lnav-manage').addEventListener('click', () => { closeLessonNav(); openLessonModal(); });
+    return;
+  }
+
+  // Group by chapter
+  const groups = {};
+  const noGroup = [];
+  keys.forEach(k => {
+    const item = store[k];
+    const title = (item.data && item.data.title) || k;
+    const ch = (item.data && item.data.chapter) || extractChapter(title);
+    if (ch) {
+      if (!groups[ch]) groups[ch] = [];
+      groups[ch].push({ id: k, item });
+    } else {
+      noGroup.push({ id: k, item });
+    }
+  });
+
+  let html = '';
+  const groupKeys = Object.keys(groups);
+  // If only one group or no groups, skip group labels
+  const showGroups = groupKeys.length > 1 || (groupKeys.length === 1 && noGroup.length > 0);
+
+  groupKeys.forEach(ch => {
+    if (showGroups) html += `<div class="lnav-group-label">${esc(ch)}</div>`;
+    groups[ch].forEach(({ id, item }) => {
+      const active = id === currentId ? ' active' : '';
+      const slides = (item.data && item.data.slides && item.data.slides.length) || 0;
+      const title = (item.data && item.data.title) || id;
+      html += `<div class="lnav-item${active}" data-nav-id="${esc(id)}">
+        <span>${esc(title)}</span>
+        <span class="lnav-slides">${slides}슬라이드</span>
+      </div>`;
+    });
+  });
+
+  if (noGroup.length) {
+    if (showGroups) html += `<div class="lnav-group-label">기타</div>`;
+    noGroup.forEach(({ id, item }) => {
+      const active = id === currentId ? ' active' : '';
+      const slides = (item.data && item.data.slides && item.data.slides.length) || 0;
+      const title = (item.data && item.data.title) || id;
+      html += `<div class="lnav-item${active}" data-nav-id="${esc(id)}">
+        <span>${esc(title)}</span>
+        <span class="lnav-slides">${slides}슬라이드</span>
+      </div>`;
+    });
+  }
+
+  html += '<div class="lnav-footer"><button id="lnav-manage">📚 수업 관리 열기</button></div>';
+  dd.innerHTML = html;
+
+  // Event listeners
+  dd.querySelectorAll('.lnav-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.navId;
+      const item = getLessonStore()[id];
+      if (item && item.data) {
+        loadLessonData(item.data);
+        setCurrentLessonId(id);
+        closeLessonNav();
+        lmToast('✅ ' + (item.data.title || id));
+      }
+    });
+  });
+  const manageBtn = dd.querySelector('#lnav-manage');
+  if (manageBtn) manageBtn.addEventListener('click', () => { closeLessonNav(); openLessonModal(); });
+}
+
+function toggleLessonNav() {
+  const dd = $('#lesson-nav-dropdown');
+  if (dd.classList.contains('open')) {
+    closeLessonNav();
+  } else {
+    renderLessonNav();
+    dd.classList.add('open');
+  }
+}
+
+function closeLessonNav() {
+  $('#lesson-nav-dropdown').classList.remove('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#lesson-nav-wrap')) closeLessonNav();
+});
+
+// Wire up title bar button
+$('#lesson-title-bar').addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleLessonNav();
+});
+
+// Load saved lesson on startup (if exists)
+function loadSavedOnStartup() {
+  const id = getCurrentLessonId();
+  if (!id) return false;
+  const store = getLessonStore();
+  const item = store[id];
+  if (item && item.data && item.data.slides) {
+    STATE.lesson = item.data;
+    return true;
+  }
+  return false;
+}
+
+// ===== AUTO-IMPORT LESSON LIBRARY =====
+function importLessonLibrary() {
+  const lib = window.LESSON_LIBRARY;
+  if (!lib || !lib.length) return;
+  const store = getLessonStore();
+  let imported = 0;
+  // Build set of valid library IDs
+  const validIds = new Set();
+  lib.forEach(data => {
+    if (!data || !data.slides) return;
+    const id = 'lib_' + (data.title || '').replace(/[^a-zA-Z0-9가-힣]/g, '_').substring(0, 40);
+    validIds.add(id);
+    if (!store[id]) {
+      store[id] = { data, savedAt: Date.now(), source: 'library' };
+      imported++;
+    }
+  });
+  // Clean up removed library lessons from cache
+  let cleaned = 0;
+  Object.keys(store).forEach(id => {
+    if (id.startsWith('lib_') && !validIds.has(id)) {
+      delete store[id]; cleaned++;
+    }
+  });
+  if (imported > 0 || cleaned > 0) saveLessonStore(store);
+  // Reset current lesson if it was removed
+  const curId = getCurrentLessonId();
+  if (curId && curId.startsWith('lib_') && !validIds.has(curId)) {
+    setCurrentLessonId('');
+  }
+  return imported;
+}
+
+// ===== START =====
+importLessonLibrary();
+// Try loading saved lesson first
+if (!loadSavedOnStartup()) {
+  // Use first library lesson, or LESSON_DATA fallback, or create fallback
+  const lib = window.LESSON_LIBRARY;
+  STATE.lesson = (lib && lib.length > 0 ? lib[0] : null) || window.LESSON_DATA || createFallbackLesson();
+  // Auto-select the first library lesson as current
+  if (lib && lib.length > 0 && STATE.lesson === lib[0]) {
+    const id = 'lib_' + (lib[0].title || '').replace(/[^a-zA-Z0-9가-힣]/g, '_').substring(0, 40);
+    setCurrentLessonId(id);
+  }
+}
+init();
+setupLessonManager();
+</script>
+</body>
+</html>
