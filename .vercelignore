@@ -1,0 +1,6 @@
+*.pptx
+*.pdf
+*.tmp
+.claude/
+*.md
+.~lock.*

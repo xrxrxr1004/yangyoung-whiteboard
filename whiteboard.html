@@ -468,6 +468,40 @@ html, body { height: 100%; overflow: hidden; font-family: 'Noto Sans KR', -apple
 .lm-list-btn:hover { background: var(--surface-muted, #f1f5f9); color: var(--text-primary, #0f172a); }
 .lm-list-btn.delete:hover { background: #fee2e2; color: #dc2626; }
 .lm-empty { text-align: center; padding: 40px 20px; color: var(--text-muted, #94a3b8); font-size: 14px; }
+
+/* ===== SORT BAR & MULTI-SELECT ===== */
+.lm-sort-bar {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.lm-sort-label { font-size: 11px; color: var(--text-muted, #94a3b8); font-weight: 600; margin-right: 2px; }
+.lm-sort-btn {
+  padding: 4px 12px; border: 1.5px solid var(--border, #e2e8f0); border-radius: 20px;
+  font-size: 12px; font-weight: 600; cursor: pointer; background: none;
+  color: var(--text-secondary, #475569); transition: all 0.15s;
+}
+.lm-sort-btn.active { border-color: var(--purple, #7c3aed); color: var(--purple, #7c3aed); background: rgba(124,58,237,0.07); }
+.lm-sort-btn:hover:not(.active) { border-color: var(--text-muted, #94a3b8); }
+.lm-list-check {
+  width: 17px; height: 17px; border-radius: 4px; border: 1.5px solid var(--border, #e2e8f0);
+  margin-right: 10px; cursor: pointer; flex-shrink: 0; appearance: none; -webkit-appearance: none;
+  background: var(--surface, #fff); transition: all 0.15s; position: relative;
+}
+.lm-list-check:checked { background: var(--purple, #7c3aed); border-color: var(--purple, #7c3aed); }
+.lm-list-check:checked::after { content: '✓'; position: absolute; top: -2px; left: 2px; font-size: 12px; color: white; font-weight: 900; }
+.lm-list li.lm-selected { background: rgba(124,58,237,0.07) !important; }
+.lm-bulk-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-top: 1px solid var(--border, #e2e8f0);
+  margin-top: 8px; border-radius: 10px; background: var(--surface-soft, #f8fafc);
+}
+.lm-bulk-bar.hidden { display: none; }
+.lm-bulk-count { font-size: 13px; font-weight: 600; color: var(--text-secondary, #475569); }
+.lm-bulk-actions { display: flex; gap: 8px; }
+.theme-dark .lm-sort-btn { border-color: #2a2a40; color: #9e9eb8; }
+.theme-dark .lm-sort-btn.active { border-color: #a78bfa; color: #a78bfa; background: rgba(167,139,250,0.08); }
+.theme-dark .lm-list-check { background: #0a0a12; border-color: #2a2a40; }
+.theme-dark .lm-list li.lm-selected { background: rgba(167,139,250,0.08) !important; }
+.theme-dark .lm-bulk-bar { background: #141420; border-top-color: #2a2a40; }
 .lm-toast {
   position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
   background: #065f46; color: #ecfdf5; padding: 10px 24px; border-radius: 10px;
@@ -475,6 +509,33 @@ html, body { height: 100%; overflow: hidden; font-family: 'Noto Sans KR', -apple
   pointer-events: none;
 }
 .lm-toast.show { opacity: 1; }
+
+/* ===== LESSON DROPZONE ===== */
+.lm-dropzone {
+  border: 2px dashed var(--border, #e2e8f0); border-radius: 12px;
+  padding: 28px 20px; text-align: center; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 4px; position: relative;
+  background: var(--surface-soft, #f8fafc);
+}
+.lm-dropzone:hover, .lm-dropzone.drag-over {
+  border-color: var(--purple, #7c3aed);
+  background: rgba(124,58,237,0.05);
+}
+.lm-dropzone.drag-over { border-style: solid; }
+.lm-dropzone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.lm-dropzone-icon { font-size: 30px; margin-bottom: 6px; }
+.lm-dropzone-text { font-size: 14px; font-weight: 700; color: var(--text-secondary, #475569); }
+.lm-dropzone-sub { font-size: 12px; color: var(--text-muted, #94a3b8); margin-top: 3px; }
+.lm-or {
+  display: flex; align-items: center; gap: 12px;
+  margin: 14px 0 10px; color: var(--text-muted, #94a3b8); font-size: 12px;
+}
+.lm-or::before, .lm-or::after { content: ''; flex: 1; height: 1px; background: var(--border, #e2e8f0); }
+.theme-dark .lm-dropzone { background: #0a0a12; border-color: #2a2a40; }
+.theme-dark .lm-dropzone:hover, .theme-dark .lm-dropzone.drag-over { border-color: #a78bfa; background: rgba(167,139,250,0.06); }
+
 .theme-dark .lm-dialog { background: #0e0e18; }
 .theme-dark .lm-textarea { background: #0a0a12; border-color: #2a2a40; color: #d0d0e0; }
 .theme-dark .lm-textarea:focus { border-color: #a78bfa; }
@@ -618,7 +679,15 @@ html, body { height: 100%; overflow: hidden; font-family: 'Noto Sans KR', -apple
         </div>
         <!-- TAB: 붙여넣기 -->
         <div class="lm-section active" id="lm-sec-load">
-          <div class="lm-label">Claude가 생성한 수업 데이터 붙여넣기</div>
+          <div class="lm-label">JS 파일 업로드</div>
+          <div class="lm-dropzone" id="lm-dropzone">
+            <input type="file" id="lm-file-input" accept=".js">
+            <div class="lm-dropzone-icon">📂</div>
+            <div class="lm-dropzone-text">JS 파일을 여기에 드래그하거나 클릭해서 선택</div>
+            <div class="lm-dropzone-sub">Claude가 생성한 lessons/*.js 파일 — 드롭하면 즉시 저장됩니다</div>
+          </div>
+          <div class="lm-or">또는 텍스트로 붙여넣기</div>
+          <div class="lm-label">수업 데이터 붙여넣기</div>
           <textarea class="lm-textarea" id="lm-paste" placeholder='Claude가 만들어준 코드를 여기에 붙여넣으세요.
 
 window.LESSON_DATA = {
@@ -632,7 +701,8 @@ window.LESSON_DATA = {
   "slides": [...]
 }'></textarea>
           <div class="lm-hint">
-            💡 Claude Cowork에 영어 지문을 주고 "양영 화이트보드 수업 데이터로 만들어줘"라고 하면 자동 생성됩니다.<br>
+            💡 Claude Cowork에 PDF를 올리고 "양영 화이트보드 JS로 만들어줘"라고 하면 자동 생성됩니다.<br>
+            &nbsp;&nbsp;&nbsp;• <code>lessons/*.js</code> 파일 직접 드롭 OK (LESSON_LIBRARY 형식)<br>
             &nbsp;&nbsp;&nbsp;• <code>window.LESSON_DATA = {...}</code> 형식 OK<br>
             &nbsp;&nbsp;&nbsp;• 순수 JSON <code>{...}</code> 형식 OK
           </div>
@@ -642,7 +712,21 @@ window.LESSON_DATA = {
         </div>
         <!-- TAB: 저장된 수업 목록 -->
         <div class="lm-section" id="lm-sec-saved">
+          <div class="lm-sort-bar">
+            <span class="lm-sort-label">정렬</span>
+            <button class="lm-sort-btn active" data-sort="date-desc">최신순</button>
+            <button class="lm-sort-btn" data-sort="date-asc">오래된순</button>
+            <button class="lm-sort-btn" data-sort="name-asc">이름순</button>
+            <button class="lm-sort-btn" data-sort="slides-desc">슬라이드 수</button>
+          </div>
           <ul class="lm-list" id="lm-saved-list"></ul>
+          <div class="lm-bulk-bar hidden" id="lm-bulk-bar">
+            <span class="lm-bulk-count" id="lm-bulk-count">0개 선택됨</span>
+            <div class="lm-bulk-actions">
+              <button class="lm-btn lm-btn-secondary" id="lm-bulk-deselect">선택 해제</button>
+              <button class="lm-btn lm-btn-danger" id="lm-bulk-delete">선택 삭제</button>
+            </div>
+          </div>
         </div>
         <!-- TAB: 현재 수업 편집 -->
         <div class="lm-section" id="lm-sec-edit">
@@ -665,6 +749,7 @@ window.LESSON_DATA = {
 <script src="lessons/sample_lesson.js"></script>
 <script src="lessons/ch03_gist.js"></script>
 <script src="lessons/ch04_claim.js"></script>
+<script src="lessons/march25_types.js"></script>
 
 <script>
 // ===== STATE =====
@@ -1465,12 +1550,21 @@ function getCurrentLessonId() {
 
 function parseLessonInput(text) {
   text = text.trim();
-  // Strip window.LESSON_DATA = ... wrapper
+  // 1) LESSON_LIBRARY.push() IIFE 형식 (Claude가 생성한 lessons/*.js 파일)
+  if (text.includes('LESSON_LIBRARY') && text.includes('push')) {
+    try {
+      const sandbox = { LESSON_LIBRARY: [] };
+      const fn = new Function('window', text);
+      fn(sandbox);
+      if (sandbox.LESSON_LIBRARY.length > 0) return sandbox.LESSON_LIBRARY[0];
+    } catch(e) {}
+  }
+  // 2) window.LESSON_DATA = ... wrapper
   const m = text.match(/(?:window\.)?LESSON_DATA\s*=\s*([\s\S]+?);?\s*$/);
   if (m) text = m[1];
-  // Try JSON parse
+  // 3) Try JSON parse
   try { return JSON.parse(text); } catch {}
-  // Try eval as JS object literal
+  // 4) Try eval as JS object literal
   try { return (new Function('return (' + text + ')'))(); } catch {}
   return null;
 }
@@ -1530,24 +1624,44 @@ function activateLmTab(tab) {
   $(`#lm-sec-${tab}`).classList.add('active');
 }
 
+let lmSortMode = 'date-desc';
+
 function renderSavedList() {
   const store = getLessonStore();
   const list = $('#lm-saved-list');
-  const keys = Object.keys(store).sort((a, b) => (store[b].savedAt || 0) - (store[a].savedAt || 0));
+
+  // 정렬 버튼 active 상태 동기화
+  $$('.lm-sort-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.sort === lmSortMode));
+
+  const keys = Object.keys(store);
   if (!keys.length) {
-    list.innerHTML = '<div class="lm-empty">저장된 수업이 없습니다.<br>새 수업을 붙여넣기해서 추가하세요.</div>';
+    list.innerHTML = '<div class="lm-empty">저장된 수업이 없습니다.<br>📂 새 수업 탭에서 JS 파일을 드롭하거나 붙여넣으세요.</div>';
+    $('#lm-bulk-bar').classList.add('hidden');
     return;
   }
+
+  // 정렬
+  keys.sort((a, b) => {
+    const ia = store[a], ib = store[b];
+    switch (lmSortMode) {
+      case 'date-asc':   return (ia.savedAt || 0) - (ib.savedAt || 0);
+      case 'name-asc':   return ((ia.data && ia.data.title) || a).localeCompare((ib.data && ib.data.title) || b, 'ko');
+      case 'slides-desc': return ((ib.data && ib.data.slides && ib.data.slides.length) || 0) - ((ia.data && ia.data.slides && ia.data.slides.length) || 0);
+      default:           return (ib.savedAt || 0) - (ia.savedAt || 0);
+    }
+  });
+
   const currentId = getCurrentLessonId();
   list.innerHTML = keys.map(k => {
     const item = store[k];
     const d = item.savedAt ? new Date(item.savedAt) : null;
     const dateStr = d ? `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}` : '';
-    const slides = item.data?.slides?.length || 0;
+    const slides = (item.data && item.data.slides && item.data.slides.length) || 0;
     const isCurrent = k === currentId;
     return `<li${isCurrent ? ' style="background:rgba(124,58,237,0.08)"' : ''}>
+      <input type="checkbox" class="lm-list-check" data-check-id="${esc(k)}" title="선택">
       <div class="lm-list-info" data-lesson-id="${esc(k)}">
-        <div class="lm-list-title">${isCurrent ? '▶ ' : ''}${esc(item.data?.title || k)}</div>
+        <div class="lm-list-title">${isCurrent ? '▶ ' : ''}${esc((item.data && item.data.title) || k)}</div>
         <div class="lm-list-meta">${item.source === 'library' ? '📁 ' : ''}${slides}개 슬라이드 · ${dateStr}</div>
       </div>
       <div class="lm-list-actions">
@@ -1555,6 +1669,24 @@ function renderSavedList() {
       </div>
     </li>`;
   }).join('');
+
+  // 체크박스 → bulk bar 연동
+  function updateBulkBar() {
+    const checked = list.querySelectorAll('.lm-list-check:checked');
+    const bar = $('#lm-bulk-bar');
+    if (checked.length > 0) {
+      bar.classList.remove('hidden');
+      $('#lm-bulk-count').textContent = `${checked.length}개 선택됨`;
+    } else {
+      bar.classList.add('hidden');
+    }
+    list.querySelectorAll('.lm-list-check').forEach(cb =>
+      cb.closest('li').classList.toggle('lm-selected', cb.checked)
+    );
+  }
+  list.querySelectorAll('.lm-list-check').forEach(cb =>
+    cb.addEventListener('change', updateBulkBar)
+  );
 
   // Click to load
   list.querySelectorAll('.lm-list-info').forEach(el => {
@@ -1569,7 +1701,8 @@ function renderSavedList() {
       }
     });
   });
-  // Delete
+
+  // 개별 삭제
   list.querySelectorAll('[data-delete-id]').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1582,6 +1715,9 @@ function renderSavedList() {
       lmToast('삭제됨');
     });
   });
+
+  // 렌더 시 bulk bar 초기화
+  $('#lm-bulk-bar').classList.add('hidden');
 }
 
 function setupLessonManager() {
@@ -1636,6 +1772,47 @@ function setupLessonManager() {
     lmToast('📋 클립보드에 복사됨');
   });
 
+  // ── JS 파일 드래그 앤 드롭 ──
+  function handleLessonFile(file) {
+    if (!file) return;
+    if (!file.name.endsWith('.js')) { lmToast('⚠️ .js 파일만 지원됩니다'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target.result;
+      const data = parseLessonInput(text);
+      if (!data || !data.slides) { lmToast('❌ 파싱 실패 — 올바른 레슨 JS 파일인지 확인하세요'); return; }
+      const id = 'usr_' + (data.title || '').replace(/[^a-zA-Z0-9가-힣]/g, '_').substring(0, 40) || ('수업_' + Date.now());
+      const store = getLessonStore();
+      store[id] = { data, savedAt: Date.now() };
+      saveLessonStore(store);
+      setCurrentLessonId(id);
+      loadLessonData(data);
+      closeLessonModal();
+      lmToast('✅ "' + (data.title || '새 수업') + '" 저장 & 로드 완료');
+    };
+    reader.readAsText(file);
+  }
+
+  const dropzone = $('#lm-dropzone');
+  const fileInput = $('#lm-file-input');
+
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('drag-over');
+  });
+  dropzone.addEventListener('dragleave', (e) => {
+    if (!dropzone.contains(e.relatedTarget)) dropzone.classList.remove('drag-over');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('drag-over');
+    handleLessonFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', (e) => {
+    handleLessonFile(e.target.files[0]);
+    fileInput.value = '';
+  });
+
   // Keyboard: L to open
   // (added in handleKey)
 
@@ -1643,6 +1820,36 @@ function setupLessonManager() {
   $('#lesson-modal').addEventListener('keydown', (e) => {
     if (e.target.tagName === 'TEXTAREA') e.stopPropagation();
   }, true);
+
+  // ── 정렬 버튼 ──
+  $$('.lm-sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      lmSortMode = btn.dataset.sort;
+      renderSavedList();
+    });
+  });
+
+  // ── 선택 해제 ──
+  $('#lm-bulk-deselect').addEventListener('click', () => {
+    $('#lm-saved-list').querySelectorAll('.lm-list-check').forEach(cb => {
+      cb.checked = false;
+      cb.closest('li').classList.remove('lm-selected');
+    });
+    $('#lm-bulk-bar').classList.add('hidden');
+  });
+
+  // ── 일괄 삭제 ──
+  $('#lm-bulk-delete').addEventListener('click', () => {
+    const checked = $('#lm-saved-list').querySelectorAll('.lm-list-check:checked');
+    if (!checked.length) return;
+    const ids = Array.from(checked).map(cb => cb.dataset.checkId);
+    const s = getLessonStore();
+    ids.forEach(id => delete s[id]);
+    saveLessonStore(s);
+    if (ids.includes(getCurrentLessonId())) setCurrentLessonId('');
+    renderSavedList();
+    lmToast(`🗑 ${ids.length}개 삭제됨`);
+  });
 }
 
 // ===== LESSON NAV DROPDOWN =====
@@ -1673,8 +1880,8 @@ function renderLessonNav() {
   const noGroup = [];
   keys.forEach(k => {
     const item = store[k];
-    const title = item.data?.title || k;
-    const ch = item.data?.chapter || extractChapter(title);
+    const title = (item.data && item.data.title) || k;
+    const ch = (item.data && item.data.chapter) || extractChapter(title);
     if (ch) {
       if (!groups[ch]) groups[ch] = [];
       groups[ch].push({ id: k, item });
@@ -1692,8 +1899,8 @@ function renderLessonNav() {
     if (showGroups) html += `<div class="lnav-group-label">${esc(ch)}</div>`;
     groups[ch].forEach(({ id, item }) => {
       const active = id === currentId ? ' active' : '';
-      const slides = item.data?.slides?.length || 0;
-      const title = item.data?.title || id;
+      const slides = (item.data && item.data.slides && item.data.slides.length) || 0;
+      const title = (item.data && item.data.title) || id;
       html += `<div class="lnav-item${active}" data-nav-id="${esc(id)}">
         <span>${esc(title)}</span>
         <span class="lnav-slides">${slides}슬라이드</span>
@@ -1705,8 +1912,8 @@ function renderLessonNav() {
     if (showGroups) html += `<div class="lnav-group-label">기타</div>`;
     noGroup.forEach(({ id, item }) => {
       const active = id === currentId ? ' active' : '';
-      const slides = item.data?.slides?.length || 0;
-      const title = item.data?.title || id;
+      const slides = (item.data && item.data.slides && item.data.slides.length) || 0;
+      const title = (item.data && item.data.title) || id;
       html += `<div class="lnav-item${active}" data-nav-id="${esc(id)}">
         <span>${esc(title)}</span>
         <span class="lnav-slides">${slides}슬라이드</span>
